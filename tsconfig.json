@@ -30,8 +30,7 @@
     "exactOptionalPropertyTypes": true,
     "noImplicitReturns": true,
     "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedSideEffectImports": true
+    "noPropertyAccessFromIndexSignature": true
   },
   "include": ["packages/*/src/**/*", "packages/*/types/**/*"],
   "exclude": ["node_modules", "dist", "build", ".expo"],
