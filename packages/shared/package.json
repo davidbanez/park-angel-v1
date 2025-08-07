@@ -10,12 +10,20 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit",
     "test": "echo \"No tests specified\" && exit 0",
-    "clean": "rm -rf dist node_modules"
+    "clean": "rm -rf dist node_modules",
+    "setup:supabase": "tsx scripts/setup-supabase.ts",
+    "verify:supabase": "tsx scripts/verify-setup.ts",
+    "verify:standalone": "tsx scripts/verify-standalone.ts",
+    "generate:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/database.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.33.1"
+    "@supabase/supabase-js": "^2.33.1",
+    "dotenv": "^16.3.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.6.0",
     "typescript": "^5.1.6"
   },
   "private": true
