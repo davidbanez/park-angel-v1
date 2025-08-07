@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --no-error-on-unmatched-pattern",
     "type-check": "tsc --noEmit",
+    "test": "echo \"No tests specified\" && exit 0",
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
