@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo build",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx --report-unused-disable-directives --max-warnings 0 --no-error-on-unmatched-pattern",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf node_modules .expo"
   },

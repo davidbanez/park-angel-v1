@@ -1,4 +1,6 @@
 // Parking-related type definitions
+import type { PricingConfig } from './payment';
+
 export interface Location {
   id: string;
   name: string;

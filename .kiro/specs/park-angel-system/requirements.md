@@ -22,20 +22,20 @@ Park Angel is a comprehensive parking management system designed to streamline p
 8. WHEN managing operator revenue sharing THEN the Super Admin SHALL be able to configure revenue sharing percentages for each operator and store their bank account details for automated remittance
 9. WHEN processing remittances THEN the Super Admin SHALL be able to calculate operator earnings based on their configured percentage and initiate bank transfers to operator accounts
 10. WHEN managing vehicle data THEN the Super Admin SHALL be able to perform CRUD operations on vehicle types, vehicle database (brand, make, model, year), and color database
-9. WHEN managing VIP parkers THEN the Super Admin SHALL be able to assign four VIP types: VVIP (free parking anywhere, anytime), Flex VVIP (free parking anywhere with time limits), VIP (free parking on specific spots, no time limit), and Flex VIP (free parking on specific spots with time limits)
-10. WHEN receiving notifications THEN the system SHALL display real-time alerts for illegal parking reports, enforcement requests, and other critical events
-11. WHEN managing parking hierarchy THEN the Super Admin SHALL be able to configure the Location → Section → Zone → Spot structure for all three parking types (Hosted, Street, Facility)
-12. WHEN managing parking types THEN the Super Admin SHALL be able to configure settings specific to Hosted Parking (host onboarding, commission rates), Street Parking (enforcement rules, standard pricing), and Parking Facility (facility management, access control)
-13. WHEN managing advertisements THEN the Super Admin SHALL be able to create, configure, and assign advertisements to specific Sections or Zones with hierarchical display rules (Section ads appear in all child Zones and Spots, Zone ads appear in all child Spots)
-14. WHEN scheduling advertisements THEN the Super Admin SHALL be able to set duration, start/end dates, and prevent overlapping ads in the same location during the same time period
-15. WHEN managing third-party API integrations THEN the Super Admin SHALL be able to view and manage all third-party applications using Park Angel's APIs, including usage statistics, costs, billing information, rate limits, and revenue tracking
-16. WHEN managing user groups THEN Super Admins SHALL be able to create user groups with granular permissions defining which screens/pages can be accessed and what type of operations (create, read, update, delete) are allowed for each screen
-17. WHEN assigning staff users THEN administrators SHALL be able to assign staff users to specific groups, automatically inheriting the group's access permissions and restrictions
-18. WHEN monitoring performance THEN the system SHALL track and analyze response times for messages, illegal parking reports, support tickets, and other critical features with performance grading and SLA monitoring
-19. WHEN configuring hosted parking revenue sharing THEN Super Admins SHALL be able to adjust the revenue sharing percentages between Park Angel and hosts (default: Host 60%, Park Angel 40%) with changes applying to all hosts
-20. WHEN managing discounts THEN Super Admins SHALL be able to configure Senior Citizen and PWD discounts with VAT exemption, and create additional custom discounts with configurable names, percentages, and VAT exemption status
-21. WHEN managing VAT THEN Super Admins SHALL be able to configure VAT rates and exemption rules, with Senior Citizen and PWD transactions being VAT-exempt by default
-22. WHEN accessing audit logs THEN the system SHALL provide comprehensive logging of all user actions and system events
+11. WHEN managing VIP parkers THEN the Super Admin SHALL be able to assign four VIP types: VVIP (free parking anywhere, anytime), Flex VVIP (free parking anywhere with time limits), VIP (free parking on specific spots, no time limit), and Flex VIP (free parking on specific spots with time limits)
+12. WHEN receiving notifications THEN the system SHALL display real-time alerts for illegal parking reports, enforcement requests, and other critical events
+13. WHEN managing parking hierarchy THEN the Super Admin SHALL be able to configure the Location → Section → Zone → Spot structure for all three parking types (Hosted, Street, Facility)
+14. WHEN managing parking types THEN the Super Admin SHALL be able to configure settings specific to Hosted Parking (host onboarding, commission rates), Street Parking (enforcement rules, standard pricing), and Parking Facility (facility management, access control)
+15. WHEN managing advertisements THEN the Super Admin SHALL be able to create, configure, and assign advertisements to specific Sections or Zones with hierarchical display rules (Section ads appear in all child Zones and Spots, Zone ads appear in all child Spots)
+16. WHEN scheduling advertisements THEN the Super Admin SHALL be able to set duration, start/end dates, and prevent overlapping ads in the same location during the same time period
+17. WHEN managing third-party API integrations THEN the Super Admin SHALL be able to view and manage all third-party applications using Park Angel's APIs, including usage statistics, costs, billing information, rate limits, and revenue tracking
+18. WHEN managing user groups THEN Super Admins SHALL be able to create user groups with granular permissions defining which screens/pages can be accessed and what type of operations (create, read, update, delete) are allowed for each screen
+19. WHEN assigning staff users THEN administrators SHALL be able to assign staff users to specific groups, automatically inheriting the group's access permissions and restrictions
+20. WHEN monitoring performance THEN the system SHALL track and analyze response times for messages, illegal parking reports, support tickets, and other critical features with performance grading and SLA monitoring
+21. WHEN configuring hosted parking revenue sharing THEN Super Admins SHALL be able to adjust the revenue sharing percentages between Park Angel and hosts (default: Host 60%, Park Angel 40%) with changes applying to all hosts
+22. WHEN managing discounts THEN Super Admins SHALL be able to configure Senior Citizen and PWD discounts with VAT exemption, and create additional custom discounts with configurable names, percentages, and VAT exemption status
+23. WHEN managing VAT THEN Super Admins SHALL be able to configure VAT rates and exemption rules, with Senior Citizen and PWD transactions being VAT-exempt by default
+24. WHEN accessing audit logs THEN the system SHALL provide comprehensive logging of all user actions and system events
 
 ### Requirement 2: Operator Dashboard (Web and Mobile Application)
 
@@ -52,7 +52,7 @@ Park Angel is a comprehensive parking management system designed to streamline p
 7. WHEN managing parking fees THEN Operator Admins SHALL be able to configure comprehensive dynamic pricing at any level of the hierarchy (Location, Section, Zone, or Spot) with inheritance rules where child elements inherit parent fees unless specifically overridden, and fee changes only affect lower levels in the hierarchy
 8. WHEN applying hierarchical pricing THEN the system SHALL use the most specific fee available (Spot-level overrides Zone-level, Zone-level overrides Section-level, Section-level overrides Location-level) with comprehensive dynamic pricing including base rates, vehicle type fees, weekday/weekend rates, holiday rates, time-based pricing, and occupancy-based adjustments
 9. WHEN managing holidays THEN the system SHALL support both one-time and recurring holiday configurations
-9. WHEN managing VIP parkers THEN Operator Admins SHALL be able to assign four VIP types: VVIP (free parking anywhere, anytime), Flex VVIP (free parking anywhere with time limits), VIP (free parking on specific spots, no time limit), and Flex VIP (free parking on specific spots with time limits)
+10. WHEN managing VIP parkers THEN Operator Admins SHALL be able to assign four VIP types: VVIP (free parking anywhere, anytime), Flex VVIP (free parking anywhere with time limits), VIP (free parking on specific spots, no time limit), and Flex VIP (free parking on specific spots with time limits)
 11. WHEN generating reports THEN the system SHALL provide comprehensive reporting including revenue reports, occupancy analytics, user behavior reports, violation reports, VIP usage statistics, zone performance, vehicle type analytics, and operational summaries with advanced sorting, filtering, live search functionality, date range options, and export capabilities to PDF and Excel formats
 12. WHEN processing payments THEN all transactions SHALL be handled directly without wallet intermediaries
 13. WHEN receiving notifications THEN users SHALL get real-time alerts for illegal parking, enforcement requests, and system updates
@@ -77,23 +77,23 @@ Park Angel is a comprehensive parking management system designed to streamline p
 7. WHEN making payments THEN all transactions SHALL be processed directly to Park Angel's account without wallet intermediaries
 8. WHEN viewing transaction history THEN users SHALL be able to filter and sort by transaction type, date, and amount
 9. WHEN managing profile THEN users SHALL be able to update personal details and payment methods
-9. WHEN managing vehicles THEN users SHALL be able to add multiple vehicles with type, brand, model, year, color, and plate number
-10. WHEN reporting violations THEN users SHALL be able to report illegally parked vehicles with photos and notes
-11. WHEN using customer support THEN users SHALL be able to initiate chat sessions with support agents
-12. WHEN viewing dashboard THEN users SHALL see active parking sessions with countdown timer, recent transactions, and quick action buttons
-13. WHEN receiving notifications THEN users SHALL get alerts for parking expiration, payment confirmations, and other relevant events
-14. WHEN using AI-assisted parking THEN users SHALL be able to input desired location and have the system automatically suggest and book optimal parking spots from all three parking types based on availability, price, and user preferences
-15. WHEN requesting towing/clamping THEN users SHALL be able to report vehicles for enforcement action with photo evidence and location details
-16. WHEN accessing audit logs THEN the system SHALL log all user actions for security and support purposes
-17. WHEN becoming a host THEN Client app users SHALL be able to transition to hosting their own parking spaces through an in-app onboarding process including document submission, identity verification, property ownership proof, and space listing creation
-18. WHEN applying for advertisements THEN Client app users SHALL be able to submit advertisement requests through the mobile/web interface, make payments, and have their ads reviewed for approval with conflict checking against existing ads in the same location and time period
-19. WHEN viewing advertisements THEN users SHALL see relevant ads based on their current Section or Zone location with appropriate display timing and frequency
-20. WHEN selecting parking facility spots THEN users SHALL be able to choose specific parking spots using an interactive visual layout interface showing real-time occupancy status, with occupied spots clearly distinguished from available spots
-21. WHEN using parking facilities THEN users SHALL experience different payment flows based on facility type: "Reservation" facilities require immediate payment for reserved time slots, while "Pay on Exit" facilities allow entry without payment and charge based on actual parking duration upon exit
-22. WHEN communicating within the system THEN users SHALL be able to send secure, encrypted in-app messages to hosts, operators, and support staff with message history and notification capabilities
-23. WHEN rating experiences THEN users SHALL be able to rate and review parking spots, operators, and hosts using a standardized rating system with written reviews for transparency and trust building
-24. WHEN navigating to parking THEN users SHALL receive turn-by-turn in-app navigation to their reserved parking spot, including directions within large parking facilities to the specific spot location and exit routes
-25. WHEN applying for discounts THEN users SHALL be able to apply for Senior Citizen or PWD status during registration by submitting required documentation for verification and approval
+10. WHEN managing vehicles THEN users SHALL be able to add multiple vehicles with type, brand, model, year, color, and plate number
+11. WHEN reporting violations THEN users SHALL be able to report illegally parked vehicles with photos and notes
+12. WHEN using customer support THEN users SHALL be able to initiate chat sessions with support agents
+13. WHEN viewing dashboard THEN users SHALL see active parking sessions with countdown timer, recent transactions, and quick action buttons
+14. WHEN receiving notifications THEN users SHALL get alerts for parking expiration, payment confirmations, and other relevant events
+15. WHEN using AI-assisted parking THEN users SHALL be able to input desired location and have the system automatically suggest and book optimal parking spots from all three parking types based on availability, price, and user preferences
+16. WHEN requesting towing/clamping THEN users SHALL be able to report vehicles for enforcement action with photo evidence and location details
+17. WHEN accessing audit logs THEN the system SHALL log all user actions for security and support purposes
+18. WHEN becoming a host THEN Client app users SHALL be able to transition to hosting their own parking spaces through an in-app onboarding process including document submission, identity verification, property ownership proof, and space listing creation
+19. WHEN applying for advertisements THEN Client app users SHALL be able to submit advertisement requests through the mobile/web interface, make payments, and have their ads reviewed for approval with conflict checking against existing ads in the same location and time period
+20. WHEN viewing advertisements THEN users SHALL see relevant ads based on their current Section or Zone location with appropriate display timing and frequency
+21. WHEN selecting parking facility spots THEN users SHALL be able to choose specific parking spots using an interactive visual layout interface showing real-time occupancy status, with occupied spots clearly distinguished from available spots
+22. WHEN using parking facilities THEN users SHALL experience different payment flows based on facility type: "Reservation" facilities require immediate payment for reserved time slots, while "Pay on Exit" facilities allow entry without payment and charge based on actual parking duration upon exit
+23. WHEN communicating within the system THEN users SHALL be able to send secure, encrypted in-app messages to hosts, operators, and support staff with message history and notification capabilities
+24. WHEN rating experiences THEN users SHALL be able to rate and review parking spots, operators, and hosts using a standardized rating system with written reviews for transparency and trust building
+25. WHEN navigating to parking THEN users SHALL receive turn-by-turn in-app navigation to their reserved parking spot, including directions within large parking facilities to the specific spot location and exit routes
+26. WHEN applying for discounts THEN users SHALL be able to apply for Senior Citizen or PWD status during registration by submitting required documentation for verification and approval
 
 ### Requirement 4: POS Mobile App (iOS and Android Application)
 

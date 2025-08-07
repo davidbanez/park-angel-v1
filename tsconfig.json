@@ -33,16 +33,8 @@
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": [
-    "packages/*/src/**/*",
-    "packages/*/types/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    ".expo"
-  ],
+  "include": ["packages/*/src/**/*", "packages/*/types/**/*"],
+  "exclude": ["node_modules", "dist", "build", ".expo"],
   "references": [
     { "path": "./packages/shared" },
     { "path": "./packages/admin-dashboard" },

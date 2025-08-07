@@ -36,12 +36,14 @@ This is a monorepo containing the following packages:
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd park-angel-system
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
