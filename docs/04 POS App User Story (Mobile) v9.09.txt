@@ -1,0 +1,412 @@
+FEATURE 1: USER SIGNIN AND SIGNOUT WITH CASH MANAGEMENT AND REPORT PRINTING
+1.1 User Story:
+	•	As an authorized POS operator,
+	•	I want to sign in to the mobile app, enter the previous cashier's cash-on-hand, my current cash-on-hand, and validate the total sum,
+	•	So that the system can account for the cash available at the beginning of my shift and ensure integrity and transparency in transactions.
+
+	•	As an authorized POS operator,
+	•	I want to sign out and enter the current physical cash-on-hand,
+	•	So that the system can validate it against recorded transactions and print a summary report for the shift.
+1.2 Acceptance Criteria:
+	•	App prompts for username and password during login.
+	•	Successful login allows entry for the previous cashier's cash-on-hand and current cash-on-hand.
+	•	System validates total cash and displays a confirmation message.
+	•	An error message is displayed if the actual physical cash is less than the balance with the system record.
+	•	App allows a sign-out option.
+	•	Prompts for entering the actual physical cash-on-hand.
+	•	Compares and validates the amount with the system.
+	•	Option to enter cash that will be remitted to the office.
+	•	Prints a summary report detailing transactions, cash collected, and other relevant information.
+1.3 Database Schema in Firestore
+Table: Users
+	•	UserID (string)
+	•	UserName (string)
+	•	Password (string)
+Table: CashManagement
+	•	SessionID (string)
+	•	UserID (string)
+	•	PreviousCashOnHand (float)
+	•	CurrentCashOnHand (float)
+	•	CashForRemittance (float)
+	•	TotalCash (float)
+	•	EndOfDayCash (float)
+	•	IsBalanced (boolean)
+Table: AuditLogs
+	•	LogID (string)
+	•	Timestamp (timestamp)
+	•	UserID (string)
+	•	Activity (string)
+	•	SystemStatus (string)
+1.4 User Flow
+	•	Open App -> If not logged in, proceed to 2, else proceed to 7.
+	•	Click "Sign In" button.
+	•	Enter Username and Password -> If correct, proceed to 4, else show error and stay.
+	•	Enter previous cashier's Cash-On-Hand and your current Cash-On-Hand.
+	•	Click "Validate" -> If sum is correct, proceed to 6, else show error.
+	•	Only show error if physical cash is less than the system record
+	•	Confirmation message displayed.
+	•	(Continue to other app features.)
+	•	On signing out, enter current Cash-On-Hand.
+	•	Option to enter Cash-for-Remittance.
+	•	Prints a summary report detailing transactions, cash collected, and other relevant information.
+
+
+
+
+
+
+
+
+1.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Authentication Service <-> Database
+	•	Backend Flow: Validate User -> Validate Cash -> Record Session -> Generate Report
+	•	Data Flow: User Data <-> Auth Service <-> Cash Management <-> Report Generation
+1.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+1.7 Report Summary Recommendation
+The summary report should include:
+	•	Total number of transactions
+	•	Total cash collected
+	•	Total cash on hand
+	•	Cash for remittance
+	•	Remaining balance after cash remittance
+	•	Discrepancies, if any
+	•	Session ID and User ID for tracking
+	•	Timestamp for shift start and end
+
+
+FEATURE 2: POS OPERATIONS FOR PARKERS WITHOUT APP
+2.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to be able to initiate a new parking session for parkers without an app,
+	•	So that I can manually allocate parking spots, set the duration, and collect fees.
+
+	•	As an authorized POS operator,
+	•	I want to be able to accept various modes of payment for parking fees,
+	•	So that I can offer flexibility in payment options for all types of parkers.
+
+2.2 Acceptance Criteria
+	•	App allows the initiation of a new parking session.
+	•	User can input date, start time, end time, and spot number.
+	•	User can enter additional information like plate number, vehicle picture, and additional notes.
+	•	App provides options for payment methods: Cash, Mobile Wallet, Credit Card, Debit Card, etc.
+	•	For Mobile Wallet payments, a QR code is displayed for the parker.
+	•	For other payment modes, necessary details are displayed.
+	•	Receipt is printed once the payment is verified.
+2.3 Database Schema in Firestore
+Table: ParkingSession
+	•	SessionID (string)
+	•	UserID (string)
+	•	SpotNumber (integer)
+	•	StartTime (timestamp)
+	•	EndTime (timestamp)
+	•	PlateNumber (string)
+	•	VehicleImage (blob)
+	•	AdditionalNotes (string)
+	•	PaymentMethod (string)
+	•	IsPaid (boolean)
+2.4 User Flow
+	•	User logs in and navigates to "New Parking Session".
+	•	Fills in date, start time, end time, and spot number.
+	•	Enters plate number, option to take a picture of the vehicle, and adds additional notes.
+	•	Selects payment method -> If Mobile Wallet, proceed to 4a, else proceed to 4b. 
+     4a. Shows QR code for the parker to scan and make payment.
+     4b. Shows details for making payment through other methods.
+	•	Once payment is verified, prints receipt.
+
+
+
+2.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Payment Service <-> Database
+	•	Backend Flow: Validate User -> Start Session -> Collect Payment -> Close Session
+	•	Data Flow: Parking Session Data <-> Payment Data <-> Session Close Data
+2.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+
+
+FEATURE 3: REASSIGNING PARKERS TO A DIFFERENT SPOT
+3.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to reassign a parked vehicle to a different spot if it is parked incorrectly,
+	•	So that I can correct accidental wrong parking without needing to issue a new ticket.
+3.2 Acceptance Criteria
+	•	User can search for the parking session based on identifiers like plate number or spot number.
+	•	The app allows reassignment of the parking spot.
+	•	After reassignment, the updated information is reflected immediately in the system.
+3.3 Database Schema in Firestore
+Table: ParkingReassignments
+	•	ReassignmentID (string)
+	•	OriginalSpotNumber (integer)
+	•	NewSpotNumber (integer)
+	•	SessionID (string)
+	•	ReassignmentTime (timestamp)
+3.4 User Flow
+	•	User logs in and navigates to "Parking Sessions".
+	•	Searches for the parking session needing reassignment.
+	•	Clicks "Reassign" button next to the session.
+	•	Enters new spot number and confirms.
+	•	System updates the parking session and logs reassignment.
+3.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Session Management Service <-> Database
+	•	Backend Flow: Validate User -> Search Session -> Update Session
+	•	Data Flow: Search Parameters <-> Session Data <-> Update Data
+3.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+FEATURE 4: VIEW PARKED VEHICLES AND STREET OCCUPANCY
+4.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to view parked vehicles in each street based on data,
+	•	So that I can monitor the occupancy and availability of parking spots.
+4.2 Acceptance Criteria
+	•	User can select a specific street or area to view.
+	•	Occupancy rates and specific parked cars are displayed.
+	•	Occupied and unoccupied spots are visually distinct.
+4.3 Database Schema in Firestore
+Table: StreetView
+	•	StreetID (string)
+	•	SpotNumbers (array of integers)
+	•	OccupancyRate (float)
+4.4 User Flow
+	•	User logs in and navigates to "Street View".
+	•	Selects a street or area to view.
+	•	System displays occupancy rate and details of parked vehicles.
+4.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Street View Service <-> Database
+	•	Backend Flow: Validate User -> Fetch Street Data
+	•	Data Flow: User Choice <-> Street Data
+4.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+
+
+FEATURE 5: REPORTING ILLEGALLY PARKED VEHICLES
+5.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to report illegally parked vehicles based on data available,
+	•	So that I can notify the admin panel and take corrective actions.
+5.2 Acceptance Criteria
+	•	Users can report illegal parking through the app interface.
+	•	On reporting, a notification is sent to the Web Admin Panel App.
+	•	Users can view the status of reports made.
+
+
+
+
+5.3 Database Schema in Firestore
+Table: IllegalParkingReports
+	•	ReportID (string)
+	•	ReporterUserID (string)
+	•	ReportedSessionID (string)
+	•	ReportTime (timestamp)
+	•	Status (string)
+5.4 User Flow
+	•	User logs in and navigates to "Report Illegal Parking".
+	•	Selects a vehicle based on identifiers (like spot number, plate number).
+	•	Files a report with optional notes.
+	•	Receives confirmation that the report has been filed and is pending admin review.
+5.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Reporting Service <-> Admin Notification Service <-> Database
+	•	Backend Flow: Validate User -> File Report -> Send Notification -> Update Report Status
+	•	Data Flow: User Report Data <-> Admin Notification Data
+5.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+
+
+
+
+
+
+
+FEATURE 6: NOTIFICATIONS FOR EXPIRED SESSIONS AND ILLEGAL PARKING
+6.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to receive notifications for expired parking sessions and illegal parking reports,
+	•	So that I can take timely corrective action.
+6.2 Acceptance Criteria
+	•	User receives real-time notifications for expired sessions and illegal parking.
+	•	Clicking on the notification reveals detailed information.
+	•	User can tag the notification as resolved and add action notes.
+6.3 Database Schema in Firestore
+Table: Notifications
+	•	NotificationID (string)
+	•	UserID (string)
+	•	Type (string: "ExpiredSession" or "IllegalParking")
+	•	Details (map)
+	•	Status (string: "Unresolved", "Resolved")
+	•	Timestamp (timestamp)
+6.4 User Flow
+	•	Notification pops up on the user interface.
+	•	User clicks on the notification.
+	•	Detailed information is displayed.
+	•	User resolves the issue and tags it as resolved with optional action notes.
+6.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Notification Service <-> Database
+	•	Backend Flow: Receive Notification -> Display Details -> Update Status
+	•	Data Flow: Notification Data <-> User Action Data
+
+6.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+
+
+FEATURE 7: LOCATION MANAGEMENT FOR PARKING SPOTS
+7.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to tag the GPS location of each parking spot,
+	•	So that the real-time coordinates are saved for accurate spot mapping.
+7.2 Acceptance Criteria
+	•	User can physically go to each parking spot.
+	•	The app allows tagging GPS coordinates by pressing a button.
+	•	Real-time GPS coordinates for each spot are saved immediately.
+7.3 Database Schema in Firestore
+Table: ParkingSpotLocation
+	•	SpotID (string)
+	•	GPSLatitude (float)
+	•	GPSLongitude (float)
+7.4 User Flow
+	•	User logs in and navigates to "Location Management".
+	•	User physically goes to a parking spot.
+	•	User opens the details of the parking spot in the app.
+	•	User clicks "Tag Location" button.
+	•	Real-time GPS coordinates are saved.
+
+
+
+7.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Location Management Service <-> Database
+	•	Backend Flow: Validate User -> Get GPS Data -> Save to Database
+	•	Data Flow: User Location Data <-> Saved Coordinates
+7.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+FEATURE 8: MANUALLY ENDING PARKING SESSIONS
+8.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to manually end a parking session that has already concluded,
+	•	So that the parking spot is freed up for new parkers.
+8.2 Acceptance Criteria
+	•	User can search for active parking sessions based on identifiers like plate number or spot number.
+	•	User can manually end a parking session.
+	•	The spot becomes available for new transactions.
+8.3 Database Schema in Firestore
+No new table; existing ParkingSession table will update field EndTime and introduce a new field: 11. ManuallyEnded (boolean)
+8.4 User Flow
+	•	User logs in and navigates to "Active Parking Sessions".
+	•	Searches for the parking session needing termination.
+	•	Clicks "End Session" button.
+	•	Session ends and spot becomes available.
+
+
+8.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Session Management Service <-> Database
+	•	Backend Flow: Validate User -> Search Session -> End Session
+	•	Data Flow: Search Parameters <-> Session Data <-> Update Data
+8.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+
+
+FEATURE 9: ACCOUNT AND PROFILE MANAGEMENT
+9.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to manage my account and profile,
+	•	So that I can keep my information up-to-date and secure.
+9.2 Acceptance Criteria
+	•	User can edit profile information like name, email, and phone number.
+	•	User can change the password.
+	•	Changes are reflected immediately.
+9.3 Database Schema in Firestore
+Table: UserAccounts
+	•	UserID (string)
+	•	UserName (string)
+	•	Email (string)
+	•	PhoneNumber (string)
+	•	PasswordHash (string)
+
+
+
+9.4 User Flow
+	•	User logs in and navigates to "Account and Profile Management".
+	•	User edits information like name, email, or phone number.
+	•	User clicks "Save Changes".
+	•	Information is updated in real-time.
+9.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Account Management Service <-> Database
+	•	Backend Flow: Validate User -> Get User Input -> Update User Profile
+	•	Data Flow: User Input <-> Updated Profile Data
+9.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+FEATURE 10: DASHBOARD VIEW
+10.1 User Stories
+	•	As an authorized POS operator,
+	•	I want to see a dashboard with important metrics,
+	•	So that I can understand the parking situation quickly.
+10.2 Acceptance Criteria
+	•	Dashboard displays number of spots, occupied spots, and reported spots.
+	•	Clicking on each metric shows details.
+	•	Data is updated in real-time.
+10.3 Database Schema in Firestore
+No new table; existing tables will be utilized for metrics.
+10.4 User Flow
+	•	User logs in and navigates to the dashboard.
+	•	Views metrics like total spots, occupied spots, and reported spots.
+	•	Clicks on a metric to view detailed information.
+10.5 System, Backend, Data Flows
+	•	System Flow: Frontend <-> Dashboard Service <-> Database
+	•	Backend Flow: Validate User -> Fetch Metrics -> Display Metrics
+	•	Data Flow: Dashboard Metrics <-> Detailed Metrics Data
+10.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+
+
+FEATURE 11: MONITORING WORK WITH AI VALIDATION AND SUMMARY REPORTS
+11.1 User Stories (Updated)
+	•	As an authorized POS operator,
+	•	I want to take images of parked vehicles, have their license plates verified by AI, and save a summary report,
+	•	So that I can ensure that the correct vehicles are parked in their assigned spots and allow for easy review by operators via the Web Admin Panel.
+11.2 Acceptance Criteria (Updated)
+	•	User can capture images of parked vehicles in their assigned area.
+	•	AI validates the license plate against system records.
+	•	User receives confirmation or warning based on the AI's validation result.
+	•	Wrong information can be reported and so that it can be reviewed by the Web Admin Panel user.
+	•	A summary report is generated and saved, which includes the date and time of the monitoring work. This report is viewable on the Web Admin Panel
+
+
+
+
+11.3 Database Schema in Firestore (Updated)
+Table: MonitoringWork (Updated)
+	•	MonitoringID (string)
+	•	UserID (string)
+	•	SpotID (string)
+	•	ImageURL (string)
+	•	Timestamp (timestamp)
+	•	AIValidationStatus (string)
+	•	SummaryReportID (string)
+Table: MonitoringSummaryReports
+	•	SummaryReportID (string)
+	•	MonitoringDate (date)
+	•	MonitoringTime (time)
+	•	UserID (string)
+	•	TotalValidations (integer)
+	•	TotalWarnings (integer)
+11.4 User Flow (Updated)
+	•	User logs in and navigates to "Monitoring Work".
+	•	User selects a parking spot.
+	•	Captures image of the parked vehicle.
+	•	AI performs validation and returns a result.
+	•	User receives a notification of the AI's result.
+	•	User can tag wrong information and can report it so that it can be reviewed by the Web Admin Panel user.
+	•	A summary report is automatically generated, saved, and linked to the monitoring record.
+11.5 System, Backend, Data Flows (Updated)
+	•	System Flow: Frontend <-> Monitoring Service <-> AI Validation Service <-> Summary Report Service <-> Database
+	•	Backend Flow: Validate User -> Capture Image -> Perform AI Validation -> Generate Summary Report -> Update Monitoring Record & Summary Report
+	•	Data Flow: Captured Image <-> AI Validation Result <-> Monitoring Record <-> Summary Report
+
+11.6 Audit Logs
+	•	All user actions, system statuses, and activities are logged in the AuditLogs table in Firestore.
+

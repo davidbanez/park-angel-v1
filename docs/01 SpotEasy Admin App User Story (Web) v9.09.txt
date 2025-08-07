@@ -1,0 +1,763 @@
+FEATURE 1: ADMIN SIGN-IN ACTIVITY
+1.1 User Story
+	•	As an: Admin
+	•	I want: to sign in to the Super Admin Web Panel
+	•	So that: I can manage the mobile parking application
+1.2 Acceptance Criteria
+	•	Admin should be able to enter a username and password.
+	•	Admin should see an error message if the credentials are incorrect.
+	•	Admin should be successfully redirected to the dashboard upon correct credentials.
+	•	Admin should see a loading spinner while the system is authenticating.
+1.3 Database Fields
+Table: Admins
+	•	admin_id: String
+	•	username: String
+	•	password: Encrypted String
+	•	last_login: Timestamp
+	•	status: Enum (Active, Inactive, Locked)
+1.4 User Flow
+	•	Admin visits the login page. If already logged in, then redirect to the dashboard.
+	•	Admin inputs username and password.
+	•	Admin clicks the "Sign In" button.
+	•	If the credentials are incorrect, then show an error message.
+	•	Else, proceed to 4.
+	•	System authenticates Admin. If authentication is successful, then redirect to the dashboard. Else, show an error message.
+1.5 System Flow
+	•	Admin sends a POST request with credentials to /api/admin/signin.
+	•	Server validates credentials against database.
+	•	Server generates a JWT token and returns it if credentials are valid.
+	•	Client stores JWT token for subsequent authenticated requests.
+1.6 Backend Flow
+	•	Receive POST request at /api/admin/signin.
+	•	Validate request payload schema.
+	•	Search for Admin in the Admins table by username.
+	•	Validate password using hash comparison.
+	•	Generate and return JWT token.
+	•	Update last_login and status fields in Admins table.
+1.7 Data Flow
+	•	Admin enters credentials in form.
+	•	Form data sent to the backend API.
+	•	Backend API queries Admins table in Firestore.
+	•	If valid, a JWT token is returned to the frontend and stored in local storage.
+1.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (SignInAttempt, SignInSuccess, SignInFailure)
+	•	timestamp: Timestamp
+	•	admin_id: String (nullable)
+	•	details: Map (nullable)
+
+
+
+
+
+
+
+
+
+
+FEATURE 2: ADMIN SIGN-OUT ACTIVITY
+2.1 User Story
+	•	As an: Admin
+	•	I want: to sign out from the Super Admin Web Panel
+	•	So that: my session is terminated, and unauthorized users cannot access the admin functionalities
+2.2 Acceptance Criteria
+	•	Admin should be able to click a "Sign Out" button.
+	•	Admin should be successfully redirected to the login page upon sign out.
+	•	Admin’s session should be terminated effectively.
+	•	Admin should see a sign-out confirmation message.
+2.3 Database Fields
+Table: Admins
+No additional fields needed for this feature.
+2.4 User Flow
+	•	Admin clicks the "Sign Out" button.
+	•	System confirms sign-out.
+	•	If Admin cancels the confirmation, then stay on the current page.
+	•	Else, proceed to 3.
+	•	System logs out Admin.
+	•	Admin is redirected to the login page.
+2.5 System Flow
+	•	Admin clicks "Sign Out" triggering a POST request to /api/admin/signout.
+	•	Server invalidates the session or JWT token.
+	•	Client removes JWT token from local storage.
+	•	Server returns a response indicating a successful logout.
+2.6 Backend Flow
+	•	Receive POST request at /api/admin/signout.
+	•	Invalidate JWT token or server-side session.
+	•	Update status field in Admins table to 'Inactive'.
+	•	Return successful response.
+2.7 Data Flow
+	•	Admin clicks "Sign Out".
+	•	A POST request sent to backend API.
+	•	Backend API updates Admin status in Firestore.
+	•	Server returns a successful logout message.
+2.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (SignOutAttempt, SignOutSuccess)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (nullable)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FEATURE 3: ADDING NEW ADMIN USERS OR STAFF USERS
+3.1 User Story
+	•	As an: Admin
+	•	I want: to add new admin or staff users to the Super Admin Web Panel
+	•	So that: they can help in managing the mobile parking application
+3.2 Acceptance Criteria
+	•	Admin should be able to access an "Add New User" page from the dashboard.
+	•	Admin should be able to fill out the necessary details for the new admin/staff.
+	•	Admin should be able to assign roles to the new user (Admin, Staff).
+	•	Admin should see a confirmation message upon successful addition of a new user.
+	•	The new user should receive an email with login details.
+3.3 Database Fields
+Table: Admins
+	•	admin_id: String
+	•	username: String
+	•	email: String
+	•	password: Encrypted String
+	•	role: Enum (Admin, Staff)
+	•	created_by: String (Refers to admin_id of the creator)
+	•	created_at: Timestamp
+	•	status: Enum (Active, Inactive, Locked)
+3.4 User Flow
+	•	Admin clicks on the "Add New User" option in the dashboard.
+	•	Admin is directed to the "Add New User" page.
+	•	Admin fills out the details (username, email, role) for the new user.
+	•	Admin clicks the "Submit" button.
+	•	If any required field is missing, then show an error message.
+	•	Else, proceed to 5.
+	•	System creates the new user.
+	•	Admin sees a confirmation message.
+	•	New user receives an email with login details.
+3.5 System Flow
+	•	Admin sends a POST request with new user data to /api/admin/addNewUser.
+	•	Server validates the data.
+	•	Server creates a new record in the Admins table.
+	•	Server sends an email to the new user with login details.
+3.6 Backend Flow
+	•	Receive POST request at /api/admin/addNewUser.
+	•	Validate request payload schema.
+	•	Insert a new record in the Admins table.
+	•	Generate a temporary password and send it via email to the new user.
+	•	Return successful response.
+3.7 Data Flow
+	•	Admin fills out new user details in form.
+	•	Form data sent to backend API.
+	•	Backend API inserts a new record into Admins table in Firestore.
+	•	Backend sends an email to the new user.
+3.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (AddUserAttempt, AddUserSuccess, AddUserFailure)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (affected_admin_id, role, email)
+
+
+
+
+
+
+FEATURE 4: ADDING NEW OPERATORS AND THEIR ADMIN USERS
+4.1 User Story
+	•	As an: Admin
+	•	I want: to add new operators and their admin users
+	•	So that: these operators can manage their respective parking lots and their admin users can perform administrative functions in their domain
+4.2 Acceptance Criteria
+	•	Admin should be able to access an "Add New Operator" page from the dashboard.
+	•	Admin should be able to fill out the necessary details for the new operator and its admin users. Such information needed is the name of the city or a parking facility.
+	•	Admin should see a confirmation message upon successful addition of a new operator and its admin users.
+	•	The new operator admin user should receive an email with login details.
+4.3 Database Fields
+Table: Operators
+	•	operator_id: String
+	•	name: String
+	•	location: String
+	•	created_by: String (Refers to admin_id of the creator)
+	•	created_at: Timestamp
+	•	status: Enum (Active, Inactive)
+Table: OperatorAdmins
+	•	admin_id: String
+	•	username: String
+	•	email: String
+	•	password: Encrypted String
+	•	operator_id: String (Refers to operator_id in Operators table)
+	•	created_at: Timestamp
+	•	status: Enum (Active, Inactive)
+4.4 User Flow
+	•	Admin clicks on the "Add New Operator" option in the dashboard.
+	•	Admin is directed to the "Add New Operator" page.
+	•	Admin fills out the details for the new operator and its admin users.
+	•	Admin clicks the "Submit" button.
+	•	If any required field is missing, then show an error message.
+	•	Else, proceed to 5.
+	•	System creates the new operator and its admin users.
+	•	Admin sees a confirmation message.
+	•	New operator admin user receives an email with login details.
+4.5 System Flow
+	•	Admin sends a POST request with new operator data to /api/admin/addNewOperator.
+	•	Server validates the data.
+	•	Server creates new records in the Operators and OperatorAdmins tables.
+	•	Server sends an email to the new operator admin user with login details.
+4.6 Backend Flow
+	•	Receive POST request at /api/admin/addNewOperator.
+	•	Validate request payload schema.
+	•	Insert a new record in the Operators table.
+	•	Insert new records in the OperatorAdmins table for each admin user.
+	•	Generate a temporary password and send it via email to the new operator admin user.
+	•	Return successful response.
+4.7 Data Flow
+	•	Admin fills out new operator and admin user details in form.
+	•	Form data sent to backend API.
+	•	Backend API inserts new records into Operators and OperatorAdmins tables in Firestore.
+	•	Backend sends an email to the new operator admin user.
+4.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (AddOperatorAttempt, AddOperatorSuccess, AddOperatorFailure)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (affected_operator_id, affected_admin_id, email)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FEATURE 5: MANAGING ADMIN PROFILE
+5.1 User Story
+	•	As an: Admin
+	•	I want: to manage my profile in the Super Admin Web Panel
+	•	So that: I can update personal information, reset passwords, and customize settings for a better user experience
+5.2 Acceptance Criteria
+	•	Admin should be able to access a "Profile" page from the dashboard.
+	•	Admin should be able to see current profile details.
+	•	Admin should be able to edit and update profile details including email, username, and password. 
+	•	Admin should see a confirmation message upon successful update.
+	•	Admin should receive an email confirmation if email or password was changed.
+5.3 Database Fields
+Table: Admins
+	•	admin_id: String
+	•	username: String
+	•	email: String
+	•	password: Encrypted String
+	•	role: Enum (Admin, Staff)
+	•	updated_at: Timestamp
+	•	status: Enum (Active, Inactive)
+5.4 User Flow
+	•	Admin clicks on the "Profile" option in the dashboard.
+	•	Admin is directed to the "Profile" page.
+	•	Admin reviews current profile details.
+	•	Admin clicks the "Edit" button to make changes.
+	•	Admin updates fields as desired and clicks "Save Changes."
+	•	If any required field is missing, then show an error message.
+	•	Else, proceed to 6.
+	•	System updates the Admin profile.
+	•	Admin sees a confirmation message.
+	•	If email or password was changed, Admin receives an email confirmation.
+5.5 System Flow
+	•	Admin sends a PUT request with updated profile data to /api/admin/updateProfile.
+	•	Server validates the data.
+	•	Server updates the corresponding record in the Admins table.
+	•	Server sends an email to Admin if email or password was changed.
+5.6 Backend Flow
+	•	Receive PUT request at /api/admin/updateProfile.
+	•	Validate request payload schema.
+	•	Update the corresponding record in the Admins table.
+	•	If email or password is changed, send a confirmation email to the Admin.
+	•	Return successful response.
+5.7 Data Flow
+	•	Admin fills out updated profile details in the form.
+	•	Form data is sent to the backend API.
+	•	Backend API updates the corresponding record in the Admins table in Firestore.
+	•	If required, the backend sends a confirmation email to the Admin.
+5.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (ProfileUpdateAttempt, ProfileUpdateSuccess, ProfileUpdateFailure)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (fields_changed, old_values, new_values)
+
+
+
+
+FEATURE 6: MANAGING INFORMATION SUCH AS BANK ACCOUNT DETAILS
+6.1 User Story
+	•	As an: Admin
+	•	I want: to manage sensitive information such as bank account details
+	•	So that: I can ensure that financial transactions related to the parking application are accurate and secure
+6.2 Acceptance Criteria
+	•	Admin should be able to access a "Financial Information" page from the dashboard.
+	•	Admin should be able to see the current bank account details.
+	•	Admin should be able to update the bank account details.
+	•	Admin should see a confirmation message upon successful update.
+	•	For security, a Two-Factor Authentication (2FA) process should be completed before updating bank details.
+6.3 Database Fields
+Table: FinancialInformation
+	•	financial_info_id: String
+	•	admin_id: String (Refers to admin_id in Admins table)
+	•	bank_name: String
+	•	account_number: Encrypted String
+	•	routing_number: Encrypted String
+	•	updated_at: Timestamp
+	•	status: Enum (Active, Inactive)
+6.4 User Flow
+	•	Admin clicks on the "Financial Information" option in the dashboard.
+	•	Admin is directed to the "Financial Information" page.
+	•	Admin reviews current bank account details.
+	•	Admin clicks the "Edit" button to make changes.
+	•	2FA process starts:
+5.1. System sends a temporary code via email/SMS.
+5.2. Admin enters the code.
+5.2.1. If code is incorrect, show error message and repeat step 5.1.
+5.2.2. If code is correct, proceed to step 6.
+	•	Admin updates fields as desired and clicks "Save Changes."
+	•	System updates the Financial Information.
+	•	Admin sees a confirmation message.
+6.5 System Flow
+	•	Admin sends a PUT request with updated bank account data to /api/admin/updateFinancialInfo.
+	•	Server triggers the 2FA process.
+	•	After successful 2FA, server validates the data.
+	•	Server updates the corresponding record in the FinancialInformation table.
+6.6 Backend Flow
+	•	Receive PUT request at /api/admin/updateFinancialInfo.
+	•	Trigger 2FA process.
+	•	Validate 2FA.
+	•	Validate request payload schema.
+	•	Update the corresponding record in the FinancialInformation table.
+	•	Return successful response.
+6.7 Data Flow
+	•	Admin fills out updated bank account details in the form.
+	•	2FA process is completed.
+	•	Form data is sent to backend API.
+	•	Backend API updates the corresponding record in the FinancialInformation table in Firestore.
+6.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (FinancialInfoUpdateAttempt, FinancialInfoUpdateSuccess, FinancialInfoUpdateFailure, 2FAAttempt, 2FASuccess, 2FAFailure)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (fields_changed, old_values, new_values, 2FA_status)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FEATURE 7: SUPER ADMIN WEB APP DASHBOARD
+7.1 User Story
+	•	As an: Admin
+	•	I want: to have a dashboard that displays important information
+	•	So that: I can monitor activities, transactions, and overall performance in real-time
+7.2 Acceptance Criteria
+	•	Admin should be able to access the Dashboard from the main menu after login.
+	•	Dashboard should display the following metrics in real-time:
+	•	Total Number of Active Operators
+	•	Total Number of Active Parking Spots
+	•	Total Number of Transactions (Today)
+	•	Revenue Generated (Today)
+	•	     Pending Wallet Reload Requests
+	•	Performance bar graph of all operators
+	•	Occupancy rate of each operator
+	•	The Dashboard should be interactive, allowing Admin to click on metrics to view detailed information.
+
+	•	The Dashboard should refresh in real-time to reflect the latest data.
+7.3 Database Fields
+Table: DashboardMetrics
+	•	metric_id: String
+	•	active_operators: Integer
+	•	active_parking_spots: Integer
+	•	total_transactions_today: Integer
+	•	revenue_today: Float
+	•	pending_wallet_reloads: Integer
+	•	unresolved_illegal_parkings: Integer
+	•	last_updated: Timestamp
+7.4 User Flow
+	•	Admin logs in to the system.
+	•	Admin is automatically directed to the Dashboard.
+	•	Admin reviews the real-time metrics displayed.
+	•	Admin clicks on a particular metric for more detailed information.
+4.1. Admin is taken to the corresponding details page.
+4.2. If Admin wishes to return, clicks "Back to Dashboard."
+7.5 System Flow
+	•	Upon successful login, server sends a GET request to /api/admin/dashboardMetrics.
+	•	Server fetches the latest metrics from the DashboardMetrics table.
+	•	Server returns the metrics for display on the Dashboard.
+7.6 Backend Flow
+	•	Receive GET request at /api/admin/dashboardMetrics.
+	•	Query latest metrics from the DashboardMetrics table.
+	•	Return successful response with the latest metrics.
+7.7 Data Flow
+	•	Upon login, a GET request fetches the latest metrics.
+	•	The Backend API queries the DashboardMetrics table in Firestore.
+	•	Latest metrics are sent to the frontend for display on the Dashboard.
+7.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (DashboardAccess, DashboardMetricClick)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (clicked_metric, timestamp)
+
+
+
+
+FEATURE 8: NOTIFICATIONS FOR REPORTED EVENTS
+8.1 User Story
+	•	As an: Admin
+	•	I want: to receive notifications for reported events like illegal parking and Wallet Reload Requests by Operators
+	•	So that: I can take timely actions to manage and resolve these issues
+8.2 Acceptance Criteria
+	•	Admin should be notified in real-time for new reported events.
+	•	Notification should show a brief description of the event type and its status (New, In Progress, Resolved).
+	•	Admin should be able to click on the notification to view detailed information.
+	•	Admin should be able to mark notifications as read.
+8.3 Database Fields
+Table: Notifications
+	•	notification_id: String
+	•	admin_id: String (Refers to admin_id in Admins table)
+	•	event_type: Enum (IllegalParking, WalletReloadRequest, etc.)
+	•	event_status: Enum (New, In Progress, Resolved)
+	•	timestamp: Timestamp
+	•	is_read: Boolean
+8.4 User Flow
+	•	A new reported event is added to the system (e.g., a Wallet Reload Request by an Operator).
+	•	System triggers a real-time notification to the Admin.
+	•	Admin sees the notification icon blink or change.
+	•	Admin clicks on the notification icon.
+	•	Admin sees a list of notifications and their statuses.
+5.1. Admin clicks on a specific notification.
+5.1.1. Admin is taken to the detailed information of that event.
+5.1.2. If Admin wishes to return, clicks "Back to Notifications."
+5.2. Admin can also mark notifications as read.
+8.5 System Flow
+	•	Upon a new reported event, the server sends a POST request to /api/admin/newNotification.
+	•	Server validates the event and its details.
+	•	Server creates a new record in the Notifications table.
+	•	Server pushes the real-time notification to the Admin's interface.
+8.6 Backend Flow
+	•	Receive POST request at /api/admin/newNotification upon a new event.
+	•	Validate the incoming event details.
+	•	Create a new record in the Notifications table.
+	•	Trigger a real-time notification to the Admin interface.
+8.7 Data Flow
+	•	A new reported event is created in the system.
+	•	Backend API creates a new record in the Notifications table in Firestore.
+	•	Real-time notification is pushed to the Admin interface.
+8.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (NewNotification, NotificationClicked, NotificationMarkedRead, NotificationDeleted)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (event_type, event_status, action_taken)
+
+
+
+
+
+
+FEATURE 9: REPORTING FEATURES
+9.1 User Story
+	•	As an: Admin
+	•	I want: to generate various reports such as Operator's Performance, Parking Spot Inventory, Parker Reloading Sales Report, Operator Wallet Reloading, Operator Sales, and Operator Parking Sales Remittance 
+	•	So that: I can analyze and make data-driven decisions for the effective management of the parking operations
+9.2 Acceptance Criteria
+	•	Admin should be able to access a "Reports" section from the dashboard.
+	•	Admin should have the option to select the type of report to generate.
+	•	Admin should be able to specify the time range for the report.
+	•	Admin should be able to find/filter and sort the reports.
+	•	Reports should be downloadable in various formats like PDF, Excel, etc.
+	•	Generated reports should be accurate and reflect the real-time data.
+9.3 Database Fields
+No specific database table, as reports will be generated dynamically from existing data tables like Operators, Transactions, ParkingSpots, WalletReloads, etc.
+9.4 User Flow
+	•	Admin clicks on the "Reports" option in the dashboard.
+	•	Admin is directed to the "Reports" page.
+	•	Admin selects the type of report from a dropdown list.
+	•	Admin specifies the time range for the report.
+	•	Admin clicks the "Generate Report" button.
+	•	Admin has option to find/filter, or sort a generated report.
+	•	System generates the report and presents download options.
+	•	Admin downloads the report in the desired format.
+9.5 System Flow
+	•	Admin sends a POST request with the report type and time range to /api/admin/generateReport.
+	•	Server validates the request and starts generating the report.
+	•	Server generates a downloadable file and sends it back to the Admin.
+9.6 Backend Flow
+	•	Receive POST request at /api/admin/generateReport.
+	•	Validate the request for the report type and time range.
+	•	Fetch the required data from various tables.
+	•	Generate the report in the requested format.
+	•	Send the report file back to Admin.
+9.7 Data Flow
+	•	Admin selects the report type and time range in the frontend.
+	•	Backend fetches the required data dynamically from existing tables in Firestore.
+	•	Backend generates the report and sends it to the frontend for download.
+9.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (ReportRequested, ReportGenerated, ReportDownloaded)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (report_type, time_range, format)
+
+
+
+
+
+
+
+
+
+
+
+
+
+FEATURE 10: REMITTANCE OF PARKING SALES TO OPERATORS
+10.1 User Story
+	•	As an: Admin
+	•	I want: to view and manage the parking sales remittance for each Operator
+	•	So that: I can ensure accurate and timely payment without any duplication
+10.2 Acceptance Criteria
+	•	Admin should be able to access the "Remittance" section from the dashboard.
+	•	The section should display all the parking sales transactions that haven't been remitted yet.
+	•	Admin should be able to tag a transaction as "Remitted" after successful payment.
+	•	System should prevent double remittance of a transaction.
+10.3 Database Fields
+Table: RemittanceTransactions
+	•	remittance_id: String
+	•	operator_id: String
+	•	transaction_id: String
+	•	amount: Float
+	•	date: Timestamp
+	•	status: Enum (Pending, Remitted)
+	•	remitted_at: Timestamp (nullable)
+10.4 User Flow
+	•	Admin clicks on the "Remittance" section in the dashboard.
+	•	Admin views a list of all transactions that have not been remitted yet.
+	•	Admin can view transactions of each operator.
+	•	Admin selects a transaction and clicks "Remit."
+	•	A confirmation pop-up appears to ensure the action.
+	•	Admin confirms and the transaction status changes to "Remitted."
+10.5 System Flow
+	•	Admin sends a POST request to /api/admin/remittance to change the status of a transaction.
+	•	Server validates the request, ensuring the transaction hasn't been remitted already.
+	•	Server changes the status to "Remitted" and logs the remittance timestamp.
+10.6 Backend Flow
+	•	Receive POST request at /api/admin/remittance.
+	•	Validate that the transaction exists and is not already remitted.
+	•	Update the status to "Remitted" and log the timestamp.
+	•	Return a successful response.
+10.7 Data Flow
+	•	Admin initiates the remittance in the frontend.
+	•	Backend validates and updates the transaction in the RemittanceTransactions table in Firestore.
+	•	Backend returns a successful status update to the frontend.
+10.8 Audit Logging
+All user activities, system activities, and system statuses related to this feature will be logged and saved in a Firestore database.
+Table: AuditLogs
+	•	log_id: String
+	•	action: Enum (RemittanceViewed, RemittanceConfirmed)
+	•	timestamp: Timestamp
+	•	admin_id: String
+	•	details: Map (remittance_id, status, timestamp)
+
+
+FEATURE 11: CRUD FOR VEHICLE TYPE – using vehicle info API
+
+As an OPERATOR ADMIN,
+I want to manage vehicle types and their associated attributes,
+So that I can accurately apply fees and restrictions based on the type of vehicle.
+
+Acceptance Criteria:
+1. The admin panel should allow adding, viewing, updating, and deleting vehicle type details.
+
+
+User Flow:
+1. OPERATOR ADMIN navigates to the vehicle type management section.
+2. OPERATOR ADMIN adds, views, updates, or deletes vehicle type details.
+
+FEATURE 12: VEHICLE DATABASE CRUD MANAGEMENT – using vehicle API
+
+As an ADMIN,
+I want a Vehicle Database CRUD Management screen to enter and manage vehicle details including Vehicle Brand, Make, Model, Year, and Vehicle Type (e.g., Vehicle, Motorcycle, Truck),
+So that I can maintain accurate vehicle information and facilitate proper pricing and management based on vehicle types.
+
+Acceptance Criteria:
+1. The admin panel should have a dedicated section for Vehicle Database CRUD Management.
+2. ADMIN can add, view, update, and delete vehicle details.
+3. When adding or updating a vehicle, the admin can input Vehicle Brand, Make, Model, Year, and select the Vehicle Type from a dropdown (Vehicle, Motorcycle, Truck).
+4. ADMIN can view a list of existing vehicle details with the ability to sort and filter.
+5. Deleting a vehicle should prompt a confirmation dialogue to prevent accidental deletions.
+
+
+User Flow:
+1. ADMIN accesses the Vehicle Database CRUD Management section.
+2. ADMIN views the list of existing vehicle details.
+3. ADMIN clicks "Add New" to enter a new vehicle.
+4. ADMIN enters Vehicle Brand, Make, Model, Year, and selects Vehicle Type from a dropdown.
+NOTE: Vehicle Type will also have its own CRUD so that Admin can select the type of vehicle types from a dropdown
+5. ADMIN clicks "Save" to add the new vehicle.
+6. If ADMIN clicks on an existing vehicle:
+   - ADMIN can view and edit the vehicle details.
+   - ADMIN clicks "Save" to update the vehicle.
+7. If ADMIN chooses to delete a vehicle:
+   - ADMIN clicks on an existing vehicle to delete.
+   - A confirmation dialogue appears; ADMIN confirms deletion.
+8. ADMIN can sort and filter the list of vehicles as needed.
+
+
+
+FEATURE 13: COLOR DATABASE CRUD MANAGEMENT – using vehicle API
+
+As an ADMIN,
+I want a Color Database CRUD Management screen to enter different colors,
+So that I can manage a list of colors to provide accurate color options for vehicle details.
+
+Acceptance Criteria:
+1. The admin panel should have a dedicated section for Color Database CRUD Management.
+2. ADMIN can add, view, update, and delete color options.
+3. ADMIN can view a list of existing color options.
+4. Deleting a color option should prompt a confirmation dialogue to prevent accidental deletions.
+
+
+User Flow:
+1. ADMIN accesses the Color Database CRUD Management section.
+2. ADMIN views the list of existing color options.
+3. ADMIN clicks "Add New" to enter a new color option.
+4. ADMIN enters the Color Name.
+5. ADMIN clicks "Save" to add the new color option.
+6. If ADMIN clicks on an existing color option:
+   - ADMIN can view and edit the color name.
+   - ADMIN clicks "Save" to update the color option.
+7. If ADMIN chooses to delete a color option:
+   - ADMIN clicks on an existing color option to delete.
+   - A confirmation dialogue appears; ADMIN confirms deletion.
+8. ADMIN can sort and filter the list of color options as needed
+
+
+     FEATURE 14: USER ACCESSIBILITY MANAGEMENT
+
+14.1 User Story
+As an: Admin  
+I want: to manage the user accessibility settings in the app  
+So that: I can control which features are accessible to each user based on their role  
+
+14.2 Acceptance Criteria
+- Admin should be able to access the "User Accessibility" section from the dashboard.
+- Admin should see a list of all users with their current accessibility settings.
+- Admin should be able to select a user and view/edit their accessibility settings.
+- Admin should be able to assign predefined roles with specific access permissions.
+- Changes to user accessibility settings should be saved and reflected immediately.
+- The system should log all changes made to user accessibility settings.
+
+14.3 User Flow
+- Admin clicks on the "User Accessibility" section in the dashboard.
+- Admin views a list of all users and their accessibility settings.
+- Admin selects a user to view/edit their accessibility settings.
+- Admin can change the access level for each feature or assign a predefined role to the user.
+- Admin saves the changes, which are then immediately reflected in the user's access permissions.
+
+14.4 Data Flow
+- Admin initiates the request to view/edit user accessibility settings in the frontend.
+- Backend processes the request and updates the UserAccessibilitySettings table in Firestore.
+- Backend returns the updated settings to the frontend.
+
+14.5 Audit Logging
+All changes to user accessibility settings will be logged and saved in a Firestore database.
+
+Table: AuditLogs  
+
+
+
+
+
+

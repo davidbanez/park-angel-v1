@@ -1,0 +1,402 @@
+
+	•	SIGN-IN
+
+As an OPERATOR ADMIN or USER,
+I want to be able to sign in to the admin panel using my credentials,
+So that I can access and manage the mobile parking app's admin functionalities.
+
+Acceptance Criteria:
+1. The sign-in page should have fields for entering username and password.
+2. Successful sign-in should redirect the OPERATOR ADMIN/ USER to the dashboard.
+3. Failed sign-in attempts should display appropriate error messages.
+
+
+User Flow:
+1. OPERATOR ADMIN/ USER opens the admin panel.
+2. OPERATOR ADMIN/ USER enters their username and password.
+3. System validates the credentials.
+4. Send OTP to mobile number or email when first login is done
+5. If valid, the system redirects the app to the dashboard.
+6. If invalid, the system displays an error message.
+
+
+	•	COMPREHENSIVE DASHBOARD WITH APP PERFORMANCE METRICS
+
+As an OPERATOR ADMIN or USER,
+I want the dashboard to present a comprehensive set of app performance metrics, including total transactions, revenue breakdown, user engagement, parking spot utilization, wallet remaining balance, and recent notifications,
+So that I can make informed decisions and efficiently manage the mobile parking app.
+
+Acceptance Criteria:
+1. The dashboard should prominently display the total number of transactions made within the selected time frame.
+- Current day vs previous day comparison (show percentage +/-)
+- Week to date (show percentage +/-)
+- Month to date (show percentage +/-)
+- Year to date  (show percentage +/-)
+2. A user engagement section should provide insights into user activity patterns and trends.
+3. The dashboard should show the total number of parking spots available, total spots taken, and total available spots.
+4. A real-time notification feed should present recent app-related events.
+5. OPERATOR ADMIN/ USER interactions with the dashboard elements should be intuitive and responsive.
+
+
+User Flow:
+1. OPERATOR ADMIN/ USER logs in to the admin panel.
+2. The dashboard greets the user with a visually appealing interface.
+3. The total transactions, revenue breakdown, user engagement, parking spot utilization, and notification sections are clearly displayed.
+4. OPERATOR ADMIN/USER can interact with visualizations to explore detailed information.
+5. The dashboard data updates dynamically as new transactions, spot updates, and notifications occur.
+
+
+
+	•	MANAGING COMPANY INFORMATION
+
+As an OPERATOR ADMIN,
+I want to manage the company's essential information, including company name, address, Taxpayer Identification Number (TIN), operating location (city or parking facility), and bank account details,
+So that I can maintain accurate company records and facilitate financial transactions effectively.
+
+Acceptance Criteria:
+1. The admin panel should allow adding, viewing, updating, and deleting company information.
+2. Company information should include fields for company name, address, TIN, operating location, and bank account details.
+
+
+User Flow:
+1. OPERATOR ADMIN logs into the OPERATOR ADMIN panel.
+2. OPERATOR ADMIN navigates to the "Company Information" section.
+3. OPERATOR ADMIN sees a list of existing company information entries.
+4. OPERATOR ADMIN clicks on an entry to view its details.
+5. OPERATOR ADMIN clicks to edit the company information.
+6. If OPERATOR ADMIN/ USER chooses to edit:
+   - OPERATOR ADMIN clicks on an existing entry to edit.
+   - OPERATOR ADMIN modifies the fields as needed.
+   - OPERATOR ADMIN clicks "Save" to update the entry.
+7. If OPERATOR ADMIN chooses to delete:
+   - OPERATOR ADMIN clicks on an existing entry to delete.
+   - OPERATOR ADMIN confirms the deletion action.
+   - The entry is saved as null
+
+
+	•	VIEW TRANSACTION HISTORY OF PARKING MADE
+
+As an OPERATOR ADMIN or USER,
+I want to view the transaction history of parking made by users,
+So that I can monitor the parking activities and identify any issues.
+
+Acceptance Criteria:
+1. The admin panel should have a section to view transaction history.
+2. Transactions should be sortable and filterable by various criteria (date, user, parking spot, vehicle type, etc.).
+
+
+User Flow:
+1. OPERATOR ADMIN/USER navigates to the transaction history section.
+2. OPERATOR ADMIN/USER applies filters or sorting options.
+3. System fetches and displays relevant transaction records.
+
+
+
+	•	WALLET RELOADING
+
+As an OPERATOR ADMIN,
+I want to manually reload the operator’s wallet with a specified amount,
+So that I can replenish the wallet balance.
+
+Acceptance Criteria:
+1. The admin panel should provide an interface to reload operator wallet.
+2. Admin should be able to enter the reload amount.
+
+
+User Flow:
+1. OPERATOR ADMIN opens the wallet reloading function.
+2. OPERATOR ADMIN enters the reload amount.
+3. OPERATOR ADMIN selects the payment method.
+	•	Mobile wallet (GCash)
+	•	Mobile wallet (Paymaya)
+	•	Credit card
+	•	Debit card
+	•	Online bank transfer
+4. OPERATOR ADMIN confirms the payment.
+5.(David - 09.04.2023.19:01) Send receipt to operator’s email and app’s message inbox 
+6. System updates the operator's wallet balance.
+
+
+
+	•	ACCOUNT AND PROFILE MANAGEMENT
+
+As an OPERATOR ADMIN,
+I want the ability to manage user accounts and profiles,
+So that I can assist users with account-related issues and updates.
+
+Acceptance Criteria:
+1. The admin panel should allow viewing and editing user profiles.
+2. Admin should be able to update user information, including name and contact details.
+3. OPERATOR ADMIN should be able to activate, deactivate, or delete the user account.
+
+
+User Flow:
+1. OPERATOR ADMIN searches for the user by mobile number, email, or name.
+2. OPERATOR ADMIN views or edits user profile details.
+3. OPERATOR ADMIN can also activate, deactivate, or delete a user.
+3. System updates the user's information upon editing.
+
+
+
+
+
+	•	USER PROFILE MANAGEMENT
+
+As a USER,
+I want to be able to manage my own account profiles,
+So that I can maintain and update my personal information without administrative intervention.
+
+Acceptance Criteria:
+1. The admin panel should provide users with the ability to view and edit their own profiles.
+2. USERS should be able to update their personal information, including name, contact details, and other relevant fields.
+
+
+User Flow:
+1. USER logs in to their account.
+2. USER accesses the profile management section within the app.
+3. USER views their profile details and selects the edit option.
+4. USER makes necessary changes to their profile information.
+5. Upon submitting changes, the system updates the user's information.
+
+
+
+	•	CRUD FOR ADMIN PANEL USERS WITH USER TYPE ASSIGNMENT
+
+As an OPERATOR ADMIN,
+I want to manage admin panel users, assign user types, and control their access,
+So that I can ensure proper authorization and delegation of responsibilities.
+
+Acceptance Criteria:
+1. The admin panel should allow adding, viewing, updating, and deleting admin panel users.
+2. Admin panel users should be assignable to different user types (e.g., OPERATOR ADMIN, USER).
+
+
+User Flow:
+1. OPERATOR ADMIN navigates to the admin user management section.
+2. OPERATOR ADMIN adds, views, updates, or deletes admin and users.
+3. Admin type assignment is available during user creation or editing.
+
+
+	•	REAL-TIME NOTIFICATIONS
+
+As an OPERATOR ADMIN or USER,
+I want to receive real-time notifications about important events and issues in the mobile parking app,
+So that I can promptly address any problems and stay informed.
+
+Acceptance Criteria:
+1. The admin panel should display notifications about various events (e.g., illegally parked vehicles, payment issues, system updates).
+2. Notifications should include event details and timestamps.
+3. Clicking on a notification should provide more information about the event.
+
+
+User Flow:
+1. OPERATOR ADMIN/USER accesses the notifications section.
+2. OPERATOR ADMIN/USER views the list of notifications with timestamps and summarized event details.
+3. If OPERATOR ADMIN/USER clicks on a notification:
+   - The system displays the full details of the event.
+   - For example, if it's an illegally parked vehicle notification, the system shows the spot where the vehicle is located.
+4. OPERATOR ADMIN/USER can go back to the list of notifications after viewing the details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+	•	CUSTOMER SUPPORT
+
+As an OPERATOR ADMIN or USER,
+I want to provide customer support and assistance to users of the mobile parking app,
+So that users can receive help and guidance when facing issues.
+
+Acceptance Criteria:
+1. The admin panel should have a customer support interface. (can be FB messenger)
+2. Admin should be able to view user inquiries, respond to them.
+
+
+
+User Flow:
+1. OPERATOR ADMIN/USER can view messages from end users thru the FB messenger app.
+2. OPERATOR ADMIN/USER responds to inquiries and resolves them.
+
+
+
+
+
+	•	MANAGING STREETS AND ASSIGNING LOCATIONS
+
+As an OPERATOR ADMIN,
+I want to manage streets where parking spots are located, assign these streets to specific locations (cities or parking facilities), and access parking details for the spots located under each street. Additionally, I want the ability to search for specific streets for easier management,
+So that I can accurately organize parking locations, monitor spot utilization, efficiently locate streets for management tasks, and maintain structured location data.
+
+Acceptance Criteria:
+1. The admin panel should allow adding, viewing, updating, and deleting street information.
+2. When adding or updating a street, the OPERATOR ADMIN should be able to assign the street to a specific location (city or parking facility).
+3. A search function should be available to quickly locate specific streets.
+4. Clicking on a specific street should provide access to the parking details of the spots located on that street, including the percentage of occupancy.
+
+
+User Flow:
+1. OPERATOR ADMIN navigates to the street management section.
+2. OPERATOR ADMIN utilizes the search function to find specific streets quickly.
+3. OPERATOR ADMIN adds, views, updates, or deletes street details as needed.
+4. When adding or updating a street, the admin selects a location (city or parking facility) from a dropdown list.
+5. Clicking on a specific street in the list provides access to its details.
+6. OPERATOR ADMIN sees a list of parking spots associated with the selected street.
+7. Each street entry shows its available number of spots, availability status, and calculated occupancy percentage based on currently occupied spots.
+8. OPERATOR ADMIN can further click on individual parking spots to view their details.
+9. OPERATOR ADMIN can activate/deactivate a street. This will also affect the spots under the current street.
+
+
+
+
+
+	•	CRUD FOR PARKING SPOT
+
+As an OPERATOR ADMIN,
+I want to manage individual parking spots, access parking history for each spot, record GPS locations and media for each spot, and have the ability to search for specific spots,
+So that I can efficiently control parking availability, gather insights into utilization, and locate spots for management tasks.
+
+Acceptance Criteria:
+1. The admin panel should allow adding, viewing, updating, and deleting parking spot details.
+2. Parking spot details should include the ability to record GPS coordinates and upload pictures.
+3. A search function should be available to quickly locate specific parking spots.
+4. Clicking on a specific parking spot should provide access to its parking history.
+
+
+User Flow:
+1. OPERATOR ADMIN navigates to the parking spot management section.
+2. OPERATOR ADMIN utilizes the search function to locate specific parking spots quickly.
+3. OPERATOR ADMIN adds, views, updates, or deletes parking spot details as needed.
+4. While updating or adding a parking spot, the OPERATOR ADMIN can input GPS coordinates and upload a picture for the spot.
+5. When viewing a specific parking spot, the system displays its current status (available, occupied, or inactive --- color coding the spot will indicate it’s availability status / RED – occupied, GREEN – available, GREY - inactive) and transaction history.
+6. The parking history includes the date, start time, end time, vehicle information, plate number, user who parked, user's email, and user's mobile number.
+
+
+
+
+
+	•	COMPREHENSIVE PARKING FEE MANAGEMENT WITH DYNAMIC PRICING
+
+As an OPERATOR ADMIN,
+I want to manage parking fees with flexibility for various conditions, including standard rates, holiday rates, rates based on vehicle type, rates based on street occupancy, and more,
+So that I can apply appropriate charges based on different factors and ensure a fair and dynamic pricing strategy.
+
+Acceptance Criteria:
+1. The admin panel should allow adding, viewing, updating, and deleting parking fee structures.
+2. Fee structures should be configurable for weekday, weekend, holidays, vehicle type, street, and spot.
+3. Dynamic pricing should be available to adjust fees based on street occupancy.
+
+
+User Flow:
+1. OPERATOR ADMIN navigates to the parking fee management section.
+2. OPERATOR ADMIN adds, views, updates, or deletes fee structures.
+3. OPERATOR ADMIN configures fees based on different conditions such as weekday, weekend, holidays, vehicle type, street, spot, and time range.
+4. OPERATOR ADMIN enables dynamic pricing by toggling the variable fee option.
+5. If variable fee is enabled, the fee automatically adjusts based on street occupancy.
+
+
+
+	•	HOLIDAY MANAGEMENT
+
+As an OPERATOR ADMIN,
+I want to manage both one-time and recurring holidays and special dates,
+So that I can apply appropriate parking fee adjustments and inform users about holiday regulations effectively.
+
+Acceptance Criteria:
+1. The admin panel should allow adding, viewing, updating, and deleting holiday details.
+2. Holiday details should include the option to specify whether the holiday is a one-time occurrence or a recurring event.
+
+
+
+User Flow:
+1. OPERATOR ADMIN navigates to the holiday management section.
+2. OPERATOR ADMIN adds, views, updates, or deletes holiday details.
+3. When adding a holiday, the OPERATOR ADMIN can choose whether the holiday is a one-time occurrence or a recurring event.
+4. Recurring holidays can have additional settings for frequency and duration.
+
+
+	•	CRUD FOR VIP PARKERS (ASSIGN MOBILE PARKING APP USERS AS VIP)
+
+As an OPERATOR ADMIN,
+I want to manage VIP parkers and assign special privileges to certain users,
+So that I can provide premium services to loyal or special users.
+
+Acceptance Criteria:
+1. The admin panel should allow adding, viewing, updating, and deleting VIP parker assignments.
+
+
+User Flow:
+1. OPERATOR ADMIN navigates to the VIP parker management section.
+2. OPERATOR ADMIN adds, views, updates, or deletes VIP parker assignments.
+
+
+
+	•	COMPREHENSIVE REPORTING SYSTEM FOR VARIOUS TRANSACTIONS
+
+As an OPERATOR ADMIN or USER,
+I want the ability to generate a wide range of reports, complete with flexible sorting, advanced filtering, and date range options,
+So that I can effectively evaluate app performance and facilitate well-informed decision-making.
+
+Acceptance Criteria:
+1. The admin panel should provide a variety of report options, including (but not limited to) revenue reports, user transaction reports, street transaction reports, parking spot transaction reports, and vehicle transaction reports.
+2. Each report category should offer sorting options to arrange data according to relevant parameters.
+3. Robust filtering capabilities should enable the isolation of specific data subsets for analysis.
+4. Date range functionalities should permit focused investigation within specified time frames.
+
+Database Fields:
+- No additional fields required. Data will be fetched from various tables.
+
+User Flow:
+1. OPERATOR ADMIN/USERS navigates to the dedicated reports section.
+2. OPERATOR ADMIN/USERS selects the desired report category from the available options (e.g., revenue, user transactions, street transactions, spot transactions, vehicle transactions).
+3. OPERATOR ADMIN/USERS configures sorting preferences, applies necessary filters, and defines the desired date range.
+4. The system processes the input and generates a comprehensive report for the selected category.
+5. The generated report is displayed for the OPERATOR ADMIN/USERS to analyze and gain insights.
+
+
+
+	•	SETTINGS
+
+As an OPERATOR ADMIN,
+I want access to various app settings for configuration and customization,
+So that I can adapt the app's behavior to different operational needs.
+
+Acceptance Criteria:
+1. The admin panel should provide access to app settings, including notifications, payment options, and general configurations.
+
+
+
+User Flow:
+1. OPERATOR ADMIN navigates to the settings section.
+2. OPERATOR ADMIN views and modifies app settings as needed.
+
+
+	•	AUDIT LOG FOR USER EVENTS
+
+As an OPERATOR ADMIN,
+I want to have an audit log feature that records all user events including logins, CRUD functions, and errors in the system,
+So that I can maintain a record of user actions, troubleshoot issues, and ensure accountability.
+
+Acceptance Criteria:
+1. The admin panel should implement an audit log that captures user events.
+2. Audit log entries should include the timestamp, user's action, affected object (if applicable), and any relevant details.
+3. Login events, CRUD functions (add, view, update, delete), and system errors should be logged.
+4. Audit log entries should be viewable by authorized admin users.
+
+
+User Flow:
+1. OPERATOR ADMIN accesses the audit log section.
+2. OPERATOR ADMIN views a list of audit log entries with timestamps and summarized actions.
+3. If OPERATOR ADMIN clicks on an audit log entry:
+   - The system displays the full details of the log.
+4. OPERATOR ADMIN can filter audit log entries by date range, user, action type, and log type.
+5. OPERATOR ADMIN can search for specific audit log entries using keywords.
+6. If an error occurs in the system:
+   - The system automatically generates an audit log entry with details about the error.

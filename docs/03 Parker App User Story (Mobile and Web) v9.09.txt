@@ -1,0 +1,809 @@
+FEATURE 1: SIGNIN (WITH OAUTH PROVIDERS SUPPORT)
+1.1 User Story
+As a user, I want to be able to sign in using my existing social media accounts or email and password, so that I can quickly and conveniently access the app's features without having to remember another set of credentials.
+
+1.2 Acceptance Criteria
+	•	Users can choose to sign in using social media accounts like Google, Facebook, etc.
+	•	Users can also opt to sign in using an email and password.
+	•	User receives an error message if the login credentials are incorrect.
+	•	Users should be redirected to the Dashboard upon successful login.
+	•	Session information should be securely stored.
+
+1.3 Firestore Database Fields
+Table Name: Users
+	•	userID: String
+	•	email: String
+	•	passwordHash: String
+	•	oAuthProvider: String
+	•	lastLogin: Timestamp
+
+1.4 User Flow
+	•	Open App
+	•	Click on "Sign In" button
+	•	Choose between "Social Media" or "Email and Password"
+	•	If "Social Media"
+	•	Redirect to oAuth provider's login page
+	•	Authenticate and return to app
+	•	Else "Email and Password"
+	•	Input email and password
+	•	Click "Login"
+	•	If credentials incorrect, show error and go back to step 1.4.3
+	•	Upon successful authentication, redirect to Dashboard
+
+1.5 System Flow
+	•	Frontend sends a login request to the backend
+	•	Backend verifies credentials or oAuth token
+	•	Backend updates lastLogin field in Firestore Users table
+	•	Backend sends a response to frontend to redirect to Dashboard
+
+1.6 Backend Flow
+	•	Receive login request
+	•	Validate request data
+	•	Authenticate user via either oAuth or database lookup
+	•	Update lastLogin in Firestore
+	•	Generate a secure session token
+	•	Send token and redirect instruction to frontend
+1.7 Data Flow
+	•	User inputs are captured in the frontend
+	•	Data is sent to backend for authentication
+	•	Backend fetches or updates data in Firestore
+	•	Backend sends authentication result and session data to frontend
+
+1.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "User Login", "Failed Login", "Backend Authentication")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+
+
+
+
+
+
+FEATURE 2: SIGNUP (WITH OAUTH PROVIDERS SUPPORT)
+2.1 User Story
+As a new user, I want to be able to sign up using my existing social media accounts or by providing my email and creating a password, so that I can quickly and conveniently create an account and start using the app's features.
+
+2.2 Acceptance Criteria
+	•	Users can choose to sign up using social media accounts like Google, Facebook, etc.
+	•	Users can also opt to sign up using an email and password.
+	•	User receives an error message if the email is already registered.
+	•	Users must verify their email before being able to log in (if signing up with email and password).
+	•	Users should be redirected to the Dashboard upon successful account creation and login.
+
+2.3 Firestore Database Fields
+Table Name: Users
+	•	userID: String
+	•	email: String
+	•	passwordHash: String
+	•	oAuthProvider: String
+	•	emailVerified: Boolean
+	•	accountCreationDate: Timestamp
+
+2.4 User Flow
+	•	Open App
+	•	Click on "Sign Up" button
+	•	Choose between "Social Media" or "Email and Password"
+	•	If "Social Media"
+	•	Redirect to oAuth provider's signup page
+	•	Authenticate and return to app
+	•	Else "Email and Password"
+	•	Input email and password
+	•	Click "Signup"
+	•	If email already registered, show error and go back to step 2.4.3
+	•	Upon successful account creation, redirect to Dashboard or email verification page based on signup method
+
+2.5 System Flow
+	•	Frontend sends a signup request to the backend
+	•	Backend verifies if the email is already registered
+	•	Backend stores new user data in Firestore Users table
+	•	Backend sends a response to frontend to redirect to Dashboard or email verification page
+
+2.6 Backend Flow
+	•	Receive signup request
+	•	Validate request data
+	•	Check for existing email in Firestore
+	•	If not existing, store new user data in Firestore
+	•	Generate a secure session token (if oAuth) or email verification token (if email signup)
+	•	Send token and redirect instruction to frontend
+2.7 Data Flow
+	•	User inputs are captured in the frontend
+	•	Data is sent to backend for verification
+	•	Backend fetches or inserts data in Firestore
+	•	Backend sends account creation result and session data to frontend
+
+2.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "User Signup", "Failed Signup", "Backend Account Creation")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 3: RESERVE PARKING, PAY, AND NAVIGATE TO PARKING
+3.1 User Story
+As a user, I want to be able to reserve a parking spot, pay for it, and navigate to it, so that I can ensure I have a parking space when I arrive and conveniently pay for it using my app wallet.
+
+3.2 Acceptance Criteria
+	•	Users can view available parking spots.
+	•	Parking spot is only available to book 5 minutes after parking session has ended
+	•	Users can't reserve if a previous session hasn't ended or if there's pending payment.
+	•	Users can select a parking spot and pay using the app wallet.
+	•	User receives a navigation guide to the reserved parking spot.
+	•	After parking, the user must end the session before the system tags the transaction as paid.
+	•	The system sends a transaction invoice to the user's email and app message inbox.
+	•	The start date of a parking spot reservation must be within 7 days of the current date and time.
+	•	If a parker has no app installed on their mobile phone, they can reserve via the web by scanning a QR code and the app will ask them if they want to download the app or reserve a parking spot using the web app.
+
+3.3 Firestore Database Fields
+Table Name: Reservations
+	•	reservationID: String
+	•	userID: String
+	•	parkingSpotID: String
+	•	startTime: Timestamp
+	•	endTime: Timestamp
+	•	paymentStatus: String (e.g., "Pending", "Paid")
+	•	amount: Float
+Table Name: ParkingSpots
+	•	parkingSpotID: String
+	•	status: String (e.g., "Available", "Reserved", "Occupied")
+	•	location: Geopoint
+
+3.4 User Flow
+	•	Open App
+	•	Navigate to "Reserve Parking"
+	•	View list of available parking spots
+	•	If a previous session exists or pending payment, show message that they need to end the previous session and pay the pending fee
+	•	Enter date, time start, and time end of parking
+	•	Select a parking spot
+	•	Confirm reservation details and proceed to payment
+	•	Parking spot is only available to book 5 minutes after parking session has ended
+	•	Pay using app wallet
+	•	Receive navigation guide to reserved parking spot
+	•	When done parking, manually end parking session in app
+	•	Receive transaction invoice via email and app message inbox
+	•	The start date of a parking spot reservation must be within 7 days of the current date and time.
+	•	If a parker has no app installed on their mobile phone, they can reserve via the web by scanning a QR code and the app will ask them if they want to download the app or reserve a parking spot using the web app.
+
+3.5 System Flow
+	•	Frontend displays available parking spots from backend
+	•	User reserves and pays for a spot
+	•	Backend updates Reservations and ParkingSpots tables in Firestore
+	•	Backend sends a navigation guide and transaction invoice
+3.6 Backend Flow
+	•	Receive reservation request
+	•	Validate user eligibility for reservation
+	•	Update Reservations and ParkingSpots tables
+	•	Deduct amount from user's wallet
+	•	Generate navigation guide
+	•	Send guide and invoice to frontend
+3.7 Data Flow
+	•	User selects a parking spot in the frontend
+	•	Data is sent to the backend for reservation and payment
+	•	Backend updates Reservations and ParkingSpots tables in Firestore
+	•	Backend sends reservation and payment status to frontend
+
+3.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Reserve Parking", "Payment", "Navigation Guide Sent")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 4: PARK NOW AND PAY
+4.1 User Story
+As a user, I want to be able to park immediately in an available spot and pay for it, so that I can quickly secure a parking spot without pre-reservation and pay for it conveniently using my app wallet.
+
+4.2 Acceptance Criteria
+	•	Users can view available parking spots.
+	•	Users can select an available parking spot and park immediately.
+	•	Users can pay using the app wallet.
+	•	After parking has ended, the user must end the session before the system tags the transaction as paid.
+	•	The system sends a transaction invoice to the user's email and app message inbox.
+	•	Users without the app can scan a QR code to be redirected to a web page for immediate parking.
+
+4.3 Firestore Database Fields
+Table Name: InstantParking
+	•	instantParkingID: String
+	•	userID: String
+	•	parkingSpotID: String
+	•	startTime: Timestamp
+	•	endTime: Timestamp
+	•	paymentStatus: String (e.g., "Pending", "Paid")
+	•	amount: Float
+Table Name: ParkingSpots
+	•	parkingSpotID: String
+	•	status: String (e.g., "Available", "Reserved", "Occupied")
+	•	location: Geopoint
+
+4.4 User Flow
+	•	Open App or Scan QR Code at Parking Spot
+	•	Navigate to "Park Now"
+	•	View list of available parking spots
+	•	Select a parking spot
+	•	Confirm parking details and proceed to payment
+	•	Pay using app wallet
+	•	Park vehicle
+	•	When done parking, manually end parking session in app
+	•	Receive transaction invoice via email and app message inbox
+
+4.5 System Flow
+	•	Frontend displays available parking spots from backend
+	•	User parks and pays for a spot
+	•	Backend updates InstantParking and ParkingSpots tables in Firestore
+	•	Backend sends a transaction invoice
+4.6 Backend Flow
+	•	Receive park-now request
+	•	Validate user eligibility for parking
+	•	Update InstantParking and ParkingSpots tables
+	•	Deduct amount from user's wallet
+	•	Send invoice to frontend
+
+4.7 Data Flow
+	•	User selects a parking spot in the frontend
+	•	Data is sent to the backend for parking and payment
+	•	Backend updates InstantParking and ParkingSpots tables in Firestore
+	•	Backend sends parking and payment status to frontend
+
+4.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Park Now", "Payment", "Session Ended")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 5: EXTEND PARKING
+5.1 User Story
+As a user, I want to be able to extend my parking time in the same or a different spot, so that I can continue to keep my vehicle parked without worrying about expiration.
+5.2 Acceptance Criteria
+	•	Users can extend parking time if the same spot is available.
+	•	If the same spot is not available, the user must move to a different spot.
+	•	The system automatically ends the previous session when a new session starts in a different spot.
+	•	Users can pay for the extension using the app wallet.
+	•	After parking has ended, the user must end the session before the system tags the transaction as paid.
+	•	The system sends a transaction invoice to the user's email and app message inbox.
+
+5.3 Firestore Database Fields
+Table Name: ParkingExtensions
+	•	extensionID: String
+	•	originalReservationID: String
+	•	newReservationID: String
+	•	startTime: Timestamp
+	•	endTime: Timestamp
+	•	amount: Float
+Table Name: Reservations
+(Refer to the fields from Feature 3)
+5.4 User Flow
+	•	Open App
+	•	Navigate to "Current Parking Session"
+	•	Click "Extend Parking"
+	•	Choose to extend in the same spot or move to a different spot
+	•	If same spot, confirm extension details
+	•	Else, select a new parking spot and confirm details
+	•	Proceed to payment
+	•	Pay using app wallet
+	•	Park vehicle
+	•	Upon leaving, manually end parking session in app
+	•	Receive transaction invoice via email and app message inbox
+
+5.5 System Flow
+	•	Frontend displays current parking session and extension options
+	•	User chooses to extend and pays for the extension
+	•	Backend updates ParkingExtensions and Reservations tables in Firestore
+	•	Backend sends a transaction invoice
+
+5.6 Backend Flow
+	•	Receive extension request
+	•	Validate user eligibility for extension
+	•	Update ParkingExtensions and Reservations tables
+	•	Deduct amount from user's wallet
+	•	Send invoice to frontend
+5.7 Data Flow
+	•	User opts for parking extension in the frontend
+	•	Data is sent to the backend for extension and payment
+	•	Backend updates ParkingExtensions and Reservations tables in Firestore
+	•	Backend sends extension and payment status to frontend
+
+5.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Extend Parking", "Payment", "Session Ended")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 6: USER WALLET RELOADING
+6.1 User Story
+As a user, I want to be able to reload my app wallet, so that I can make payments for parking and other services within the app.
+
+6.2 Acceptance Criteria
+	•	Users can view their current wallet balance.
+	•	Users can choose to reload the wallet using various payment methods.
+	•	The wallet balance is updated immediately after successful payment.
+	•	User receives an official receipt containing all mandated government fields and information through email and the app message inbox.
+
+6.3 Firestore Database Fields
+Table Name: Wallets
+	•	walletID: String
+	•	userID: String
+	•	balance: Float
+	•	lastReloaded: Timestamp
+Table Name: WalletTransactions
+	•	transactionID: String
+	•	walletID: String
+	•	amount: Float
+	•	transactionType: String (e.g., "Reload", "Payment")
+	•	timestamp: Timestamp
+
+6.4 User Flow
+	•	Open App
+	•	Navigate to "Wallet"
+	•	View current balance
+	•	Click "Reload Wallet"
+	•	Choose payment method and amount
+	•	Confirm and make payment
+	•	View updated wallet balance
+	•	Receive official receipt via email and app message inbox
+
+6.5 System Flow
+	•	Frontend displays user's current wallet balance
+	•	User initiates wallet reload
+	•	Backend updates Wallets and WalletTransactions tables in Firestore
+	•	Backend sends updated wallet balance to frontend
+	•	Backend sends official receipt to user's email and app message inbox
+
+6.6 Backend Flow
+	•	Receive reload request
+	•	Validate payment details
+	•	Update Wallets and WalletTransactions tables
+	•	Update operator's wallet balance
+	•	Send updated balance to frontend
+	•	Send updated balance to frontend
+
+6.7 Data Flow
+	•	User initiates a wallet reload in the frontend
+	•	Payment details are sent to the backend
+	•	Backend updates Wallets and WalletTransactions tables in Firestore
+	•	Backend sends updated wallet balance to frontend
+
+6.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Wallet Reload", "Payment Success", "Payment Failure")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+
+
+
+
+
+
+
+6.9 Official Receipt Fields
+The official receipt should contain the following mandated government fields and information:
+
+	•	Business Name
+	•	Business Address
+	•	Business Tax Identification Number
+	•	Date of Transaction
+	•	Receipt Number
+	•	Customer Name
+	•	Customer Address
+	•	Description of Service (e.g., Wallet Reload)
+	•	Payment Method
+	•	Amount Paid
+	•	Applicable Taxes
+	•	Authorized Signature
+FEATURE 7: VIEW TRANSACTION HISTORY
+7.1 User Story
+	•	As a user, I want to be able to view my transaction history and filter and sort it based on various criteria, so that I can easily keep track of my parking expenses and activities.
+
+7.2 Acceptance Criteria
+	•	Users can view a list of all their transactions.
+	•	Users can filter transactions by type (e.g., "Parking", "Wallet Reload").
+	•	Users can sort transactions by date, amount, etc.
+	•	Users can apply date and time filters to narrow down transactions.
+
+7.3 Firestore Database Fields
+Table Name: TransactionHistory
+	•	transactionID: String
+	•	userID: String
+	•	transactionType: String (e.g., "Parking", "Wallet Reload")
+	•	amount: Float
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+
+7.4 User Flow
+	•	Open App
+	•	Navigate to "Transaction History"
+	•	View list of transactions
+	•	Apply filters and sorting as needed
+	•	View filtered and sorted transactions
+
+7.5 System Flow
+	•	Frontend requests user's transaction history from backend
+	•	Backend fetches data from Firestore TransactionHistory table
+	•	Backend sends the transaction history data to frontend
+	•	Frontend displays the data, allowing the user to filter and sort it
+
+7.6 Backend Flow
+	•	Receive request for transaction history
+	•	Fetch data from TransactionHistory table based on user ID and any provided filters
+	•	Send the filtered and sorted data back to frontend
+
+7.7 Data Flow
+	•	Frontend requests transaction history
+	•	Backend fetches the required data from Firestore
+	•	Backend sends the transaction history data to frontend
+	•	Frontend displays the data based on user interaction
+7.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "View Transaction History", "Apply Filters", "Apply Sorting")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 8: ACCOUNT AND PROFILE MANAGEMENT
+8.1 User Story
+	•	As a user, I want to manage my account details and payment methods, so that I can keep my information up-to-date and choose my preferred way to pay for services.
+
+8.2 Acceptance Criteria
+	•	Users can view and edit their personal details.
+	•	Users can add, remove, or update payment methods.
+	•	User receives a confirmation upon successful changes.
+	•	Users can also change their password.
+
+8.3 Firestore Database Fields
+Table Name: Users
+(Refer to the fields from Feature 1)
+Table Name: PaymentMethods
+	•	paymentMethodID: String
+	•	userID: String
+	•	cardNumber: String (encrypted)
+	•	expiryDate: String
+	•	paymentType: String (e.g., "Credit Card", "Debit Card")
+
+8.4 User Flow
+	•	Open App
+	•	Navigate to "Account and Profile"
+	•	View current account details
+	•	Edit personal details or payment methods
+	•	Save changes
+	•	Receive confirmation message
+
+8.5 System Flow
+	•	Frontend displays current user profile and payment methods
+	•	User updates account details or payment methods
+	•	Backend updates Users and PaymentMethods tables in Firestore
+	•	Backend sends confirmation message to frontend
+
+8.6 Backend Flow
+	•	Receive account or payment method update request
+	•	Validate changes and user identity
+	•	Update Users and PaymentMethods tables in Firestore
+	•	Send confirmation message to frontend
+
+8.7 Data Flow
+	•	User makes changes in the frontend
+	•	Data is sent to the backend for updating
+	•	Backend updates Users and PaymentMethods tables in Firestore
+	•	Backend sends confirmation to frontend
+8.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Edit Profile", "Add Payment Method", "Remove Payment Method")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 9: ADD VEHICLES TO ACCOUNT
+9.1 User Story
+	•	As a user, I want to add my vehicles to my account, so that I can easily select which vehicle I am parking when making a reservation.
+
+9.2 Acceptance Criteria
+	•	Users can add multiple vehicles to their account.
+	•	Users can select vehicle type, brand, model, year, and color from dropdowns.
+	•	Users can manually enter the plate number.
+	•	Users can edit or remove vehicles from their account.
+
+9.3 Firestore Database Fields
+Table Name: Vehicles
+	•	vehicleID: String
+	•	userID: String
+	•	vehicleType: String
+	•	brand: String
+	•	model: String
+	•	year: String
+	•	color: String
+	•	plateNumber: String
+
+9.4 User Flow
+	•	Open App
+	•	Navigate to "My Vehicles"
+	•	View list of added vehicles
+	•	Click "Add New Vehicle"
+	•	Select vehicle details from dropdowns and enter plate number
+	•	Save vehicle information
+	•	Edit or remove vehicles as needed
+
+9.5 System Flow
+	•	Frontend displays list of user's vehicles from backend
+	•	User adds a new vehicle or edits an existing one
+	•	Backend updates Vehicles table in Firestore
+	•	Backend sends updated list of vehicles to frontend
+
+9.6 Backend Flow
+	•	Receive request to add or edit a vehicle
+	•	Validate vehicle information
+	•	Update Vehicles table in Firestore
+	•	Send updated list of vehicles to frontend
+
+9.7 Data Flow
+	•	User adds or edits a vehicle in the frontend
+	•	Vehicle details are sent to the backend for validation and storage
+	•	Backend updates Vehicles table in Firestore
+	•	Backend sends updated list of vehicles to frontend
+9.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Add Vehicle", "Edit Vehicle", "Remove Vehicle")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 10: REPORTING ILLEGALLY PARKED VEHICLES
+10.1 User Story
+	•	As a user, I want to report vehicles that are parked illegally, so that the parking area remains safe and available for legitimate users.
+
+10.2 Acceptance Criteria
+	•	Users can report illegally parked vehicles through the app.
+	•	Users can attach a photo and notes about the illegally parked vehicle.
+	•	Reporting sends a notification to users in the parking admin panel web app.
+	•	Reporting also sends notifications to mobile POS users.
+
+10.3 Firestore Database Fields
+Table Name: IllegalParkingReports
+	•	reportID: String
+	•	userID: String
+	•	timestamp: Timestamp
+	•	photoURL: String
+	•	notes: String
+	•	status: String (e.g., "Reported", "Resolved")
+
+10.4 User Flow
+	•	Open App
+	•	Navigate to "Report Illegal Parking"
+	•	Attach a photo and add notes
+	•	Submit the report
+	•	Receive confirmation of the report
+
+10.5 System Flow
+	•	User submits an illegal parking report from the frontend
+	•	Backend stores the report in IllegalParkingReports table in Firestore
+	•	Backend sends notifications to admin panel and mobile POS users
+
+10.6 Backend Flow
+	•	Receive illegal parking report from frontend
+	•	Validate report details
+	•	Store report in IllegalParkingReports table in Firestore
+	•	Trigger notifications to admin panel and mobile POS users
+
+10.7 Data Flow
+	•	User submits an illegal parking report in the frontend
+	•	Report details are sent to the backend
+	•	Backend updates IllegalParkingReports table in Firestore
+	•	Backend triggers notifications to admin panel and mobile POS users
+10.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Illegal Parking Report", "Notification Sent")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 11: CUSTOMER SUPPORT MESSAGING
+11.1 User Story
+	•	As a user, I want to have a direct channel for customer support within the app, so that I can resolve any issues or get answers to my questions promptly.
+
+11.2 Acceptance Criteria
+	•	Users can initiate a chat with customer support from within the app.
+	•	Users can send text messages and attach files or photos.
+	•	Users receive real-time responses from customer support.
+	•	Chat history is saved for future reference.
+
+11.3 Firestore Database Fields
+Table Name: SupportChats
+	•	chatID: String
+	•	userID: String
+	•	supportAgentID: String
+	•	status: String (e.g., "Open", "Closed")
+Table Name: ChatMessages
+	•	messageID: String
+	•	chatID: String
+	•	timestamp: Timestamp
+	•	messageType: String (e.g., "Text", "File")
+	•	content: String or File URL
+	•	sender: String (e.g., "User", "Agent")
+
+11.4 User Flow
+	•	Open App
+	•	Navigate to "Customer Support"
+	•	Initiate a new chat or select an existing chat
+	•	Send messages or attach files
+	•	Receive responses from customer support
+
+11.5 System Flow
+	•	User initiates a chat from the frontend
+	•	Backend creates a new chat in the SupportChats table and starts storing messages in the ChatMessages table in Firestore
+	•	Customer support agent responds through a separate interface connected to the backend
+	•	Backend updates the chat in real-time for the user
+
+11.6 Backend Flow
+	•	Receive chat initiation or message from frontend
+	•	Create or update chat in SupportChats table in Firestore
+	•	Store messages in ChatMessages table in Firestore
+	•	Relay messages between user and customer support agent
+11.7 Data Flow
+	•	User initiates a chat or sends a message from the frontend
+	•	Message details are sent to the backend
+	•	Backend updates SupportChats and ChatMessages tables in Firestore
+	•	Backend sends updated chat and messages to frontend
+
+11.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Initiate Chat", "Send Message", "Receive Message")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+FEATURE 12: DASHBOARD VIEW WITH IMPORTANT DATA AND COUNTDOWN TIMER
+12.1 User Story
+	•	As a user, I want to see a dashboard with important data and a countdown timer for my existing parking session, so that I can easily monitor my parking status and other relevant information.
+
+12.2 Acceptance Criteria
+	•	Users can see a dashboard upon logging in or navigating to the home screen.
+	•	Dashboard shows buttons for reserve parking and park now, important data such as wallet balance, top-up wallet button, and transaction list for upcoming parking, parking transaction history, and wallet top-up. and recent transactions.
+	•	If an active parking session exists, a countdown timer displays the remaining time.
+	•	Phone dropdown notification will also show the countdown timer when currently in a parking session
+
+12.3 Firestore Database Fields
+No new database fields are needed for this feature, as it aggregates existing data from tables like Wallets, Reservations, and TransactionHistory.
+12.4 User Flow
+	•	Open App
+	•	Navigate to Dashboard or view Dashboard upon login
+	•	See important data like wallet balance, active parking session, and recent transactions
+	•	If an active parking session exists, monitor the countdown timer
+	•	User can also swipe down from the phone’s notification panel to see the countdown timer
+
+12.5 System Flow
+	•	User navigates to the Dashboard
+	•	Backend fetches relevant data from Firestore tables
+	•	Backend sends the data to frontend
+	•	Frontend displays the data in a Dashboard view and phone’s dropdown notification
+
+12.6 Backend Flow
+	•	Receive request for Dashboard data
+	•	Fetch data from various Firestore tables based on user ID
+	•	Aggregate and send the data to frontend
+
+12.7 Data Flow
+	•	Frontend requests Dashboard data
+	•	Backend fetches the relevant data from Firestore tables
+	•	Backend sends the aggregated data to frontend
+	•	Frontend displays the Dashboard based on the received data
+
+12.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "View Dashboard", "Monitor Countdown Timer")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+
+
+FEATURE 13: NOTIFICATIONS FOR PARKING EXPIRATION AND OTHER RELATED NOTIFICATIONS
+
+13.1 User Story
+	•	As a user, I want to receive notifications about my parking expiration and other related events, so that I can take timely actions such as extending my parking time or ending my parking session.
+
+13.2 Acceptance Criteria
+	•	Users receive notifications for parking expiration.
+	•	Users receive notifications for other important events like successful payments or reservation confirmations.
+	•	Notifications are sent to both the app and via email.
+
+13.3 Firestore Database Fields
+Table Name: Notifications
+	•	notificationID: String
+	•	userID: String
+	•	type: String (e.g., "Parking Expiration", "Payment Success")
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Sent", "Failed")
+
+13.4 User Flow
+	•	Open App
+	•	Automatically receive notifications for relevant events
+	•	Navigate to "Notifications" to see a history of all notifications
+
+13.5 System Flow
+	•	Backend triggers a notification based on specific events (e.g., parking time about to expire)
+	•	Backend stores the notification in the Notifications table in Firestore
+	•	Backend sends the notification to the user's device and email
+
+13.6 Backend Flow
+	•	Identify the event that triggers a notification
+	•	Create a new notification in the Notifications table in Firestore
+	•	Use a notification service to send the notification to the user's device and email
+
+13.7 Data Flow
+	•	Backend identifies an event that should trigger a notification
+	•	Backend creates a new notification in the Notifications table in Firestore
+	•	Notification is sent to the user's device and email
+
+13.8 Audit Logs
+Table Name: AuditLogs
+	•	logID: String
+	•	activityType: String (e.g., "Send Notification", "Notification Failed")
+	•	userID: String
+	•	timestamp: Timestamp
+	•	status: String (e.g., "Success", "Failure")
+	•	additionalInfo: Map
+
+
+
+FEATURE 14: AI-ASSISTED PARKING
+
+14.1 User Story
+As a: User
+I want: to type in my desired parking location and have the app automatically book and pay for the parking
+So that: I can save time and effort in finding and booking parking spots
+
+14.2 Acceptance Criteria
+	•	User should be able to access the "AI-Assisted Parking" feature from the app's main screen.
+	•	User should be able to input their desired parking location.
+	•	The app should display available parking options near the specified location.
+	•	The app should automatically select the best parking option based on availability, price, and user preferences.
+	•	The app should prompt the user for confirmation before proceeding with the booking and payment.
+	•	The system should book the parking spot and process the payment only after user confirmation.
+	•	The user should receive a confirmation notification with booking details.
+
+
+
+14.3 User Flow
+
+User clicks on the "AI-Assisted Parking" feature from the main screen.
+User inputs the desired parking location.
+App displays available parking options near the specified location.
+App automatically selects the best parking option and displays the details.
+User confirms the booking and payment.
+App books the parking spot and processes the payment.
+User receives a confirmation notification with booking details.
+
+14.4 Audit Logging
+
+All actions related to AI-Assisted Parking will be logged and saved in a Firestore database.
+
+Table: AuditLogs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
