@@ -306,16 +306,12 @@ export class AuthorizationService {
       if (error) throw error;
 
       const permissions: ResourcePermission[] = [];
-      data?.forEach(
-        (membership: {
-          user_groups?: { permissions?: ResourcePermission[] };
-        }) => {
-          const groupPermissions = membership.user_groups?.permissions || [];
-          if (Array.isArray(groupPermissions)) {
-            permissions.push(...groupPermissions);
-          }
+      data?.forEach((membership: any) => {
+        const groupPermissions = membership.user_groups?.permissions || [];
+        if (Array.isArray(groupPermissions)) {
+          permissions.push(...(groupPermissions as ResourcePermission[]));
         }
-      );
+      });
 
       return permissions;
     } catch (error) {
@@ -382,7 +378,7 @@ export class AuthorizationService {
     obj: Record<string, unknown>,
     path: string
   ): unknown {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
+    return path.split('.').reduce((current: any, key) => current?.[key], obj);
   }
 
   /**
@@ -413,9 +409,9 @@ export class AuthorizationService {
       case 'equals':
         return fieldValue === conditionValue;
       case 'greater_than':
-        return fieldValue > conditionValue;
+        return Number(fieldValue) > Number(conditionValue);
       case 'less_than':
-        return fieldValue < conditionValue;
+        return Number(fieldValue) < Number(conditionValue);
       case 'contains':
         if (Array.isArray(fieldValue)) {
           return fieldValue.includes(conditionValue);
@@ -589,7 +585,7 @@ export class AuthorizationService {
     // Convert conditions to SQL
     const sqlConditions = relevantPermission.conditions.map(condition => {
       const field = condition.field.replace(/\./g, '_'); // Convert dot notation to underscore
-      const value = condition.value.replace('{{userId}}', userId);
+      const value = String(condition.value).replace('{{userId}}', userId);
 
       switch (condition.operator) {
         case 'equals':

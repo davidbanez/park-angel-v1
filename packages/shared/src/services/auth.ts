@@ -628,23 +628,14 @@ export class AuthService {
       if (groupError) throw groupError;
 
       const groups: UserGroup[] =
-        groupData?.map(
-          (membership: {
-            user_groups: {
-              id: string;
-              name: string;
-              description: string;
-              permissions: unknown;
-              operator_id: string;
-            };
-          }) => ({
-            id: membership.user_groups.id,
-            name: membership.user_groups.name,
-            description: membership.user_groups.description,
-            permissions: membership.user_groups.permissions || [],
-            operatorId: membership.user_groups.operator_id,
-          })
-        ) || [];
+        groupData?.map((membership: any) => ({
+          id: membership.user_groups.id,
+          name: membership.user_groups.name,
+          description: membership.user_groups.description,
+          permissions:
+            (membership.user_groups.permissions as Permission[]) || [],
+          operatorId: membership.user_groups.operator_id,
+        })) || [];
 
       // Aggregate all permissions from groups
       const allPermissions: Permission[] = [];
@@ -701,9 +692,9 @@ export class AuthService {
               case 'equals':
                 return contextValue === condition.value;
               case 'greater_than':
-                return contextValue > condition.value;
+                return Number(contextValue) > Number(condition.value);
               case 'less_than':
-                return contextValue < condition.value;
+                return Number(contextValue) < Number(condition.value);
               case 'contains':
                 return String(contextValue).includes(String(condition.value));
               default:
