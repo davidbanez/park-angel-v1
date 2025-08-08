@@ -14,6 +14,7 @@
     "setup:supabase": "tsx scripts/setup-supabase.ts",
     "verify:supabase": "tsx scripts/verify-setup.ts",
     "verify:standalone": "tsx scripts/verify-standalone.ts",
+    "verify:auth": "tsx scripts/verify-auth.ts",
     "generate:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/database.ts"
   },
   "dependencies": {

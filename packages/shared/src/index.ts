@@ -83,5 +83,20 @@ export * from './config/supabase';
 
 // Export services
 export * from './services/auth';
+export {
+  AuthorizationService,
+  type AuthorizationContext,
+  type ResourcePermission,
+} from './services/authorization';
+export * from './services/session';
+export * from './services/account-verification';
 export * from './services/storage';
 export * from './services/realtime';
+
+// Export hooks
+export * from './hooks/useAuth';
+export * from './hooks/usePermissions';
+export * from './hooks/useSession';
+
+// Export components
+export * from './components/ProtectedRoute';

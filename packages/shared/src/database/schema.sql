@@ -397,6 +397,24 @@ CREATE TABLE performance_metrics (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- User sessions table for session management
+CREATE TABLE user_sessions (
+  id TEXT PRIMARY KEY, -- Session token/ID
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  access_token_hash TEXT NOT NULL,
+  refresh_token_hash TEXT,
+  expires_at TIMESTAMPTZ NOT NULL,
+  last_activity TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ip_address INET,
+  user_agent TEXT,
+  device_id TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  ended_at TIMESTAMPTZ,
+  end_reason TEXT,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Audit logs table
 CREATE TABLE audit_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -457,6 +475,11 @@ CREATE INDEX idx_api_usage_created_at ON api_usage(created_at);
 
 CREATE INDEX idx_performance_metrics_feature ON performance_metrics(feature);
 CREATE INDEX idx_performance_metrics_created_at ON performance_metrics(created_at);
+
+CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX idx_user_sessions_is_active ON user_sessions(is_active);
+CREATE INDEX idx_user_sessions_expires_at ON user_sessions(expires_at);
+CREATE INDEX idx_user_sessions_last_activity ON user_sessions(last_activity);
 
 CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_resource_type ON audit_logs(resource_type);
