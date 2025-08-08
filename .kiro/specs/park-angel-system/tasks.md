@@ -49,7 +49,7 @@
   - Build password reset and account verification flows
   - _Requirements: 12.1-12.10, 1.1, 2.1, 3.1, 4.1_
 
-- [ ] 6. Develop parking management core services
+- [x] 6. Develop parking management core services
   - Create Location management service with hierarchy support
   - Implement Spot availability and reservation system
   - Build dynamic pricing engine with hierarchical rules

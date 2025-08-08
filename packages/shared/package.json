@@ -9,12 +9,21 @@
     "dev": "tsc --watch",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit",
-    "test": "echo \"No tests specified\" && exit 0",
+    "test": "vitest",
+    "test:run": "vitest run",
     "clean": "rm -rf dist node_modules",
     "setup:supabase": "tsx scripts/setup-supabase.ts",
     "verify:supabase": "tsx scripts/verify-setup.ts",
     "verify:standalone": "tsx scripts/verify-standalone.ts",
     "verify:auth": "tsx scripts/verify-auth.ts",
+    "verify:auth-methods": "tsx scripts/verify-auth-methods.ts",
+    "verify:database": "tsx scripts/verify-database.ts",
+    "fix:database": "tsx scripts/fix-database.ts",
+    "enable:oauth-cli": "tsx scripts/enable-oauth-cli.ts",
+    "enable:oauth-api": "tsx scripts/enable-oauth-management-api.ts",
+    "enable:oauth-direct": "tsx scripts/enable-oauth-direct.ts",
+    "enable:oauth": "tsx scripts/enable-oauth-complete.ts",
+    "test:oauth": "tsx scripts/test-oauth-enabled.ts",
     "generate:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/database.ts"
   },
   "dependencies": {
@@ -25,7 +34,9 @@
   "devDependencies": {
     "@types/uuid": "^10.0.0",
     "tsx": "^4.6.0",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "vitest": "^1.0.0",
+    "@vitest/ui": "^1.0.0"
   },
   "private": true
 }

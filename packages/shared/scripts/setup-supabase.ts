@@ -3,6 +3,7 @@
 // Setup script for initializing Supabase backend infrastructure
 // This script automates the setup of database schema, RLS policies, storage buckets, and Edge Functions
 
+import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -521,14 +522,17 @@ class SupabaseSetup {
 
 // CLI execution
 async function main() {
-  const config: SetupConfig = {
+  // Load environment variables
+  config({ path: join(__dirname, '../.env.local') });
+  
+  const setupConfig: SetupConfig = {
     supabaseUrl: process.env.SUPABASE_URL || '',
     supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     skipConfirmation:
       process.argv.includes('--yes') || process.argv.includes('-y'),
   };
 
-  if (!config.supabaseUrl || !config.supabaseServiceKey) {
+  if (!setupConfig.supabaseUrl || !setupConfig.supabaseServiceKey) {
     console.error('❌ Missing required environment variables:');
     console.error('   SUPABASE_URL');
     console.error('   SUPABASE_SERVICE_ROLE_KEY');
@@ -546,7 +550,7 @@ async function main() {
     console.log('Use --yes flag to skip this confirmation.\n');
   }
 
-  const setup = new SupabaseSetup(config);
+  const setup = new SupabaseSetup(setupConfig);
   await setup.run();
 }
 
