@@ -309,7 +309,9 @@ export class VATCalculator {
     const discountedAmount = new Money(
       Math.max(0, amount.value - totalDiscountAmount)
     );
-    const vatAmount = new Money(this.defaultRate.apply(discountedAmount.value));
+    const vatAmount = new Money(
+      Math.round(this.defaultRate.apply(discountedAmount.value) * 100) / 100
+    );
     const totalAmount = discountedAmount.add(vatAmount);
 
     return new VATCalculation(
@@ -352,7 +354,9 @@ export class VATCalculator {
     const discountedAmount = new Money(
       Math.max(0, amount.value - totalDiscountAmount)
     );
-    const vatAmount = new Money(vatRate.apply(discountedAmount.value));
+    const vatAmount = new Money(
+      Math.round(vatRate.apply(discountedAmount.value) * 100) / 100
+    );
     const totalAmount = discountedAmount.add(vatAmount);
 
     return new VATCalculation(

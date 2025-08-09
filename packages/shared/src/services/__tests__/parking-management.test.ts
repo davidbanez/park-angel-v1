@@ -1,5 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createClient } from '@supabase/supabase-js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LocationManagementServiceImpl } from '../parking-management';
 import { SpotAvailabilityServiceImpl } from '../spot-availability';
 import { DynamicPricingServiceImpl } from '../dynamic-pricing';
@@ -7,7 +6,7 @@ import { BookingWorkflowServiceImpl } from '../booking-workflow';
 import { RealtimeOccupancyServiceImpl } from '../realtime-occupancy';
 import { ParkingTypeServiceImpl } from '../parking-type';
 import { ParkingType, SpotStatus } from '../../models/location';
-import { BookingStatus, PaymentStatus } from '../../models/booking';
+import { BookingStatus } from '../../models/booking';
 import { PricingConfig } from '../../models/pricing';
 import { UserId } from '../../models/value-objects';
 

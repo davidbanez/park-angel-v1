@@ -60,7 +60,7 @@
 
 ## Payment and Financial Systems
 
-- [ ] 7. Implement payment processing system
+- [x] 7. Implement payment processing system
   - Integrate Stripe for credit card processing
   - Set up PayPal integration for alternative payments
   - Implement local payment gateways (GCash, PayMaya)
@@ -69,7 +69,7 @@
   - Implement automated payout system
   - _Requirements: 3.7, 1.8-1.9, 7.6_
 
-- [ ] 8. Build discount and VAT management system
+- [x] 8. Build discount and VAT management system
   - Create discount rule engine with configurable types
   - Implement Senior Citizen and PWD discount logic
   - Build VAT calculation with exemption rules

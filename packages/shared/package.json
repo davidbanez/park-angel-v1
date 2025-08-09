@@ -24,6 +24,7 @@
     "enable:oauth-direct": "tsx scripts/enable-oauth-direct.ts",
     "enable:oauth": "tsx scripts/enable-oauth-complete.ts",
     "test:oauth": "tsx scripts/test-oauth-enabled.ts",
+    "test:payment": "tsx scripts/test-payment-system.ts",
     "generate:types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > src/types/database.ts"
   },
   "dependencies": {
