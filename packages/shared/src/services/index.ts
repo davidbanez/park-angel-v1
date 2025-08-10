@@ -24,6 +24,15 @@ export * from './discount-vat-management';
 export * from './discount-rule-engine';
 export * from './discount-reporting';
 
+// Export financial reporting and remittance services
+export * from './financial-reporting';
+export * from './automated-remittance';
+export * from './commission-system';
+export * from './transaction-reconciliation';
+
+// Export operator management services
+export * from './operator-management';
+
 // Service factory for creating service instances
 import { createClient } from '@supabase/supabase-js';
 import { LocationManagementServiceImpl } from './parking-management';
@@ -37,6 +46,11 @@ import { RevenueShareServiceImpl } from './revenue-sharing';
 import { PayoutServiceImpl } from './payout-processing';
 import { DiscountVATManagementService } from './discount-vat-management';
 import { DiscountReportingService } from './discount-reporting';
+import { FinancialReportingServiceImpl } from './financial-reporting';
+import { AutomatedRemittanceServiceImpl } from './automated-remittance';
+import { CommissionSystemServiceImpl } from './commission-system';
+import { TransactionReconciliationServiceImpl } from './transaction-reconciliation';
+import { OperatorManagementServiceImpl } from './operator-management';
 
 export class ParkingServiceFactory {
   constructor(private supabase: ReturnType<typeof createClient>) {}
@@ -86,9 +100,38 @@ export class ParkingServiceFactory {
     return new DiscountReportingService(this.supabase);
   }
 
+  createFinancialReportingService(): FinancialReportingServiceImpl {
+    const revenueShareService = this.createRevenueShareService();
+    const payoutService = this.createPayoutService();
+    return new FinancialReportingServiceImpl(this.supabase, revenueShareService, payoutService);
+  }
+
+  createAutomatedRemittanceService(): AutomatedRemittanceServiceImpl {
+    const revenueShareService = this.createRevenueShareService();
+    const payoutService = this.createPayoutService();
+    const financialReportingService = this.createFinancialReportingService();
+    return new AutomatedRemittanceServiceImpl(this.supabase, revenueShareService, payoutService, financialReportingService);
+  }
+
+  createCommissionSystemService(): CommissionSystemServiceImpl {
+    const financialReportingService = this.createFinancialReportingService();
+    return new CommissionSystemServiceImpl(this.supabase, financialReportingService);
+  }
+
+  createTransactionReconciliationService(): TransactionReconciliationServiceImpl {
+    const financialReportingService = this.createFinancialReportingService();
+    return new TransactionReconciliationServiceImpl(this.supabase, financialReportingService);
+  }
+
+  createOperatorManagementService(): OperatorManagementServiceImpl {
+    return new OperatorManagementServiceImpl(this.supabase);
+  }
+
   // Create all services at once
   createAllServices() {
     const revenueShareService = this.createRevenueShareService();
+    const payoutService = new PayoutServiceImpl(this.supabase, revenueShareService);
+    const financialReportingService = new FinancialReportingServiceImpl(this.supabase, revenueShareService, payoutService);
     
     return {
       locationManagement: this.createLocationManagementService(),
@@ -99,9 +142,14 @@ export class ParkingServiceFactory {
       parkingType: this.createParkingTypeService(),
       paymentProcessing: this.createPaymentProcessingService(),
       revenueShare: revenueShareService,
-      payout: new PayoutServiceImpl(this.supabase, revenueShareService),
+      payout: payoutService,
       discountVATManagement: this.createDiscountVATManagementService(),
-      discountReporting: this.createDiscountReportingService()
+      discountReporting: this.createDiscountReportingService(),
+      financialReporting: financialReportingService,
+      automatedRemittance: new AutomatedRemittanceServiceImpl(this.supabase, revenueShareService, payoutService, financialReportingService),
+      commissionSystem: new CommissionSystemServiceImpl(this.supabase, financialReportingService),
+      transactionReconciliation: new TransactionReconciliationServiceImpl(this.supabase, financialReportingService),
+      operatorManagement: this.createOperatorManagementService()
     };
   }
 }

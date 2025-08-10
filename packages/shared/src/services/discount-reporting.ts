@@ -279,7 +279,7 @@ export class DiscountReportingService {
     let headers: string[];
 
     switch (reportType) {
-      case 'detail':
+      case 'detail': {
         const detailReport = await this.generateDetailReport(filters);
         headers = [
           'Booking ID', 'User Name', 'Discount Rule', 'Discount Type',
@@ -293,14 +293,16 @@ export class DiscountReportingService {
           item.spotLocation || 'N/A'
         ]);
         break;
+      }
 
-      case 'vat_exemption':
+      case 'vat_exemption': {
         const vatReport = await this.generateVATExemptionReport(filters);
         headers = ['Discount Type', 'Count', 'Total Amount', 'VAT Saved'];
         data = vatReport.exemptionsByType.map(item => [
           item.discountType, item.count, item.totalAmount, item.vatSaved
         ]);
         break;
+      }
 
       default:
         throw new Error(`Export not supported for report type: ${reportType}`);
@@ -322,8 +324,8 @@ export class DiscountReportingService {
     averageDiscountAmount: number;
     uniqueUsers: number;
   }>> {
-    const dateFormat = period === 'daily' ? 'YYYY-MM-DD' : 
-                      period === 'weekly' ? 'YYYY-"W"WW' : 'YYYY-MM';
+    // const dateFormat = period === 'daily' ? 'YYYY-MM-DD' : 
+    //                   period === 'weekly' ? 'YYYY-"W"WW' : 'YYYY-MM';
 
     let query = this.supabase
       .from('discount_applications')
@@ -350,11 +352,12 @@ export class DiscountReportingService {
         case 'daily':
           periodKey = date.toISOString().split('T')[0];
           break;
-        case 'weekly':
+        case 'weekly': {
           const weekStart = new Date(date);
           weekStart.setDate(date.getDate() - date.getDay());
           periodKey = weekStart.toISOString().split('T')[0];
           break;
+        }
         case 'monthly':
           periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
           break;
@@ -372,7 +375,7 @@ export class DiscountReportingService {
 
       acc[periodKey].totalApplications++;
       acc[periodKey].totalDiscountAmount += parseFloat(app.discount_amount);
-      acc[periodKey].uniqueUsers.add(app.bookings.user_id);
+      acc[periodKey].uniqueUsers.add((app.bookings as any).user_id);
 
       return acc;
     }, {} as Record<string, any>);

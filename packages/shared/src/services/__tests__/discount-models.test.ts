@@ -2,9 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { 
   DiscountRule, 
   DiscountEngine, 
-  VATCalculator, 
-  AppliedDiscount,
-  TransactionCalculation 
+  VATCalculator
 } from '../../models/discount';
 import { Money, Percentage } from '../../models/value-objects';
 

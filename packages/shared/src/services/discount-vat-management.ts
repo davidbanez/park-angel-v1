@@ -3,14 +3,12 @@ import {
   DiscountRule, 
   DiscountEngine, 
   VATCalculator, 
-  AppliedDiscount,
-  VATCalculation,
   TransactionCalculation,
   DiscountUserContext,
   CreateDiscountRuleData,
   DiscountOperator
 } from '../models/discount';
-import { Money, Percentage, UserId } from '../models/value-objects';
+import { Money, Percentage } from '../models/value-objects';
 import { DiscountType } from '../types';
 
 export interface DiscountVerificationDocument {
@@ -92,7 +90,7 @@ export class DiscountVATManagementService {
   }): Promise<DiscountRule> {
     const rule = DiscountRule.create(data);
     
-    const { data: insertedRule, error } = await this.supabase
+    const { error } = await this.supabase
       .from('discount_rules')
       .insert({
         id: rule.id,
@@ -119,8 +117,7 @@ export class DiscountVATManagementService {
 
   async updateDiscountRule(
     ruleId: string, 
-    updates: Partial<CreateDiscountRuleData>,
-    updatedBy: string
+    updates: Partial<CreateDiscountRuleData>
   ): Promise<DiscountRule> {
     const { data: existingRule, error: fetchError } = await this.supabase
       .from('discount_rules')
@@ -322,7 +319,7 @@ export class DiscountVATManagementService {
     }
 
     const { data: config, error } = await query
-      .order('operator_id', { nullsLast: false })
+      .order('operator_id', { ascending: true })
       .limit(1)
       .single();
 
@@ -586,13 +583,13 @@ export class DiscountVATManagementService {
     // Group by date and discount type
     const grouped = applications.reduce((acc, app) => {
       const date = new Date(app.created_at).toISOString().split('T')[0];
-      const key = `${date}-${app.discount_rules.type}`;
+      const key = `${date}-${(app.discount_rules as any).type}`;
       
       if (!acc[key]) {
         acc[key] = {
           date,
-          discountType: app.discount_rules.type as DiscountType,
-          discountName: app.discount_rules.name,
+          discountType: (app.discount_rules as any).type as DiscountType,
+          discountName: (app.discount_rules as any).name,
           usageCount: 0,
           totalDiscountAmount: 0,
           totalOriginalAmount: 0,

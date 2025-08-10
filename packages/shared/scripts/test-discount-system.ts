@@ -8,8 +8,7 @@
 import { 
   DiscountRule, 
   DiscountEngine, 
-  VATCalculator, 
-  TransactionCalculation 
+  VATCalculator
 } from '../src/models/discount';
 import { Money, Percentage } from '../src/models/value-objects';
 import { DiscountRuleEngine } from '../src/services/discount-rule-engine';
