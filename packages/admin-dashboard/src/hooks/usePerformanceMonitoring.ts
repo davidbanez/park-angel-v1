@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { DashboardService } from '../services/dashboardService';
 
 interface PerformanceEntry {
   feature: string;
@@ -37,10 +36,13 @@ export const usePerformanceMonitoring = () => {
     performanceEntries.current.delete(trackingId);
 
     // Report to backend if duration is significant
-    if (duration > 1000) { // Report if over 1 second
+    if (duration > 1000) {
+      // Report if over 1 second
       try {
         // In a real implementation, you would have a method to report performance metrics
-        console.warn(`Slow performance detected: ${entry.feature} took ${duration.toFixed(2)}ms`);
+        console.warn(
+          `Slow performance detected: ${entry.feature} took ${duration.toFixed(2)}ms`
+        );
       } catch (error) {
         console.error('Error reporting performance metric:', error);
       }
