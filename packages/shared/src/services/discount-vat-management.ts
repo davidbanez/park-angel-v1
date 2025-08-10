@@ -117,7 +117,8 @@ export class DiscountVATManagementService {
 
   async updateDiscountRule(
     ruleId: string, 
-    updates: Partial<CreateDiscountRuleData>
+    updates: Partial<CreateDiscountRuleData>,
+    updatedBy: string
   ): Promise<DiscountRule> {
     const { data: existingRule, error: fetchError } = await this.supabase
       .from('discount_rules')

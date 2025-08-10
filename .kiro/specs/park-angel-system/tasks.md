@@ -125,7 +125,7 @@
   - Build operator remittance management
   - _Requirements: 1.4, 1.11-1.12, 8.1-8.12, 1.8-1.9_
 
-- [ ] 14. Implement vehicle and discount management
+- [x] 14. Implement vehicle and discount management
   - Create vehicle database CRUD interface
   - Build vehicle type and color management
   - Implement discount configuration system
@@ -134,7 +134,7 @@
   - Implement discount approval workflow
   - _Requirements: 1.10, 15.1-15.10, 1.20-1.21_
 
-- [ ] 15. Build advertisement management system
+- [x] 15. Build advertisement management system
   - Create advertisement creation and management interface
   - Implement hierarchical ad placement (Section/Zone)
   - Build ad scheduling with conflict resolution

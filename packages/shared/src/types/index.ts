@@ -4,6 +4,7 @@ export * from './parking';
 export * from './booking';
 export * from './payment';
 export * from './financial-reporting';
+export * from './advertisement';
 
 // Export operator types with explicit re-export to avoid conflicts
 export type {

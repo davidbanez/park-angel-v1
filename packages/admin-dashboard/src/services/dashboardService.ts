@@ -187,7 +187,7 @@ export class DashboardServiceImpl implements DashboardService {
     }
   }
 
-  async getParkingUtilization(): Promise<ParkingUtilization[]> {
+  async getParkingUtilization(filters?: DashboardFilters): Promise<ParkingUtilization[]> {
     try {
       const { data: locations, error } = await this.supabase
         .from('locations')

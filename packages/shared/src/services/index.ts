@@ -33,6 +33,9 @@ export * from './transaction-reconciliation';
 // Export operator management services
 export * from './operator-management';
 
+// Export advertisement management services
+export * from './advertisement-management';
+
 // Service factory for creating service instances
 import { createClient } from '@supabase/supabase-js';
 import { LocationManagementServiceImpl } from './parking-management';

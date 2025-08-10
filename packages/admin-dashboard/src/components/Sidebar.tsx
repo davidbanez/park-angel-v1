@@ -8,6 +8,7 @@ import {
   CurrencyDollarIcon,
   TruckIcon,
   TagIcon,
+  MegaphoneIcon,
   ChartBarIcon,
   CogIcon,
   XMarkIcon
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Financial Management', href: '/financial', icon: CurrencyDollarIcon },
   { name: 'Vehicle Management', href: '/vehicles', icon: TruckIcon },
   { name: 'Discount Management', href: '/discounts', icon: TagIcon },
+  { name: 'Advertisement Management', href: '/advertisements', icon: MegaphoneIcon },
   { name: 'Reports & Analytics', href: '/reports', icon: ChartBarIcon },
   { name: 'Settings', href: '/settings', icon: CogIcon },
 ]
