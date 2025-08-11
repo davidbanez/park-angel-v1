@@ -19,9 +19,13 @@ interface OperatorMetrics {
   totalRevenue: number;
   totalBookings: number;
   activeSpots: number;
+  occupiedSpots: number;
   occupancyRate: number;
   averageSessionDuration: number;
   customerSatisfaction: number;
+  revenueGrowth: number;
+  bookingGrowth: number;
+  occupancyGrowth: number;
 }
 
 interface OperatorState {
@@ -108,7 +112,7 @@ export const useOperatorStore = create<OperatorState>((set, get) => ({
     }
   },
 
-  fetchMetrics: async (_timeRange = '7d') => {
+  fetchMetrics: async (timeRange: string = 'week') => {
     set({ isLoading: true, error: null });
     
     try {
@@ -118,15 +122,30 @@ export const useOperatorStore = create<OperatorState>((set, get) => ({
         throw new Error('No operator data available');
       }
 
-      // This would typically call a stored procedure or complex query
-      // For now, we'll simulate the metrics
+      // Simulate API call with time range consideration
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Generate metrics based on time range
+      const baseMetrics = {
+        day: { revenue: 1250.75, bookings: 28, growth: 5.2 },
+        week: { revenue: 8420.50, bookings: 189, growth: 12.5 },
+        month: { revenue: 35420.50, bookings: 742, growth: 18.3 },
+        year: { revenue: 425000.00, bookings: 8950, growth: 22.1 },
+      };
+
+      const currentMetrics = baseMetrics[timeRange as keyof typeof baseMetrics] || baseMetrics.week;
+
       const mockMetrics: OperatorMetrics = {
-        totalRevenue: 15420.50,
-        totalBookings: 342,
+        totalRevenue: currentMetrics.revenue,
+        totalBookings: currentMetrics.bookings,
         activeSpots: 45,
+        occupiedSpots: 35,
         occupancyRate: 0.78,
         averageSessionDuration: 2.5,
         customerSatisfaction: 4.6,
+        revenueGrowth: currentMetrics.growth,
+        bookingGrowth: currentMetrics.growth * 0.8,
+        occupancyGrowth: currentMetrics.growth * 0.6,
       };
 
       set({

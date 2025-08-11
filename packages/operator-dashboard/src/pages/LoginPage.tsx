@@ -23,10 +23,17 @@ export const LoginPage: React.FC = () => {
     
     try {
       await signIn(email, password);
-      // For first-time users, show OTP verification
-      setShowOTP(true);
+      
+      // Check if we need OTP verification (user won't be authenticated yet if OTP is required)
+      if (!isAuthenticated) {
+        setShowOTP(true);
+      }
     } catch (error) {
       console.error('Sign in error:', error);
+      // If it's a first-time user, we might still need to show OTP
+      if (error instanceof Error && error.message.includes('OTP')) {
+        setShowOTP(true);
+      }
     }
   };
 

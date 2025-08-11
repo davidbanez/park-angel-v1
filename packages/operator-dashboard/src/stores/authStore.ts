@@ -42,12 +42,39 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (data.user && data.session) {
-            set({
-              user: data.user,
-              session: data.session,
-              isAuthenticated: true,
-              isLoading: false,
-            });
+            // Check if this is a first-time login by checking user metadata
+            const isFirstTime = !data.user.user_metadata?.last_sign_in_at;
+            
+            if (isFirstTime) {
+              // For first-time users, we need OTP verification
+              // Send OTP email
+              const { error: otpError } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                  shouldCreateUser: false,
+                }
+              });
+
+              if (otpError) {
+                throw otpError;
+              }
+
+              // Don't set authenticated yet, wait for OTP verification
+              set({
+                user: null,
+                session: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            } else {
+              // Regular login for returning users
+              set({
+                user: data.user,
+                session: data.session,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+            }
           }
         } catch (error) {
           set({
@@ -99,6 +126,18 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (data.user && data.session) {
+            // Update user metadata to mark as verified
+            const { error: updateError } = await supabase.auth.updateUser({
+              data: { 
+                last_sign_in_at: new Date().toISOString(),
+                otp_verified: true 
+              }
+            });
+
+            if (updateError) {
+              console.warn('Failed to update user metadata:', updateError);
+            }
+
             set({
               user: data.user,
               session: data.session,
