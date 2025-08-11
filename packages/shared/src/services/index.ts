@@ -10,6 +10,7 @@ export * from './account-verification';
 export * from './parking-management';
 export * from './spot-availability';
 export * from './dynamic-pricing';
+export * from './hierarchical-pricing';
 export * from './booking-workflow';
 export * from './realtime-occupancy';
 export * from './parking-type';

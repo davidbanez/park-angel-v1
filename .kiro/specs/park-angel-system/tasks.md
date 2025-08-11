@@ -199,7 +199,7 @@
   - Build search and filtering capabilities
   - _Requirements: 2.5-2.6, 8.1-8.12_
 
-- [ ] 22. Implement hierarchical pricing management
+- [x] 22. Implement hierarchical pricing management
   - Create pricing configuration interface for all hierarchy levels
   - Build dynamic pricing engine with occupancy-based adjustments
   - Implement vehicle type-specific pricing
