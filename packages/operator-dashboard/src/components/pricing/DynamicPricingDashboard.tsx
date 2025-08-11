@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../shared/Card';
 import { Button } from '../shared/Button';
-import { DynamicPricingServiceImpl } from '../../../../shared/src/services/dynamic-pricing';
-import { createClient } from '@supabase/supabase-js';
+// import { DynamicPricingServiceImpl } from '../../../../shared/src/services/dynamic-pricing';
+// import { createClient } from '@supabase/supabase-js';
 
 interface DynamicPricingDashboardProps {
   locationId: string;
@@ -37,11 +37,6 @@ export const DynamicPricingDashboard: React.FC<DynamicPricingDashboardProps> = (
   const [metrics, setMetrics] = useState<PricingMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const supabase = createClient(
-    process.env.REACT_APP_SUPABASE_URL!,
-    process.env.REACT_APP_SUPABASE_ANON_KEY!
-  );
 
   const occupancyLevels: OccupancyLevel[] = [
     {
@@ -86,63 +81,12 @@ export const DynamicPricingDashboard: React.FC<DynamicPricingDashboardProps> = (
     try {
       setLoading(true);
       
-      // Get current occupancy
-      const { data: occupancyData, error: occupancyError } = await supabase
-        .from('parking_spots')
-        .select(`
-          status,
-          zones!inner (
-            sections!inner (
-              locations!inner (
-                id
-              )
-            )
-          )
-        `)
-        .eq('zones.sections.locations.id', locationId);
+      // Mock data for demo
+      const currentOccupancy = 65; // 65% occupancy
+      const totalRevenue = 2450.75;
+      const bookingsToday = 18;
+      const averageRate = totalRevenue / bookingsToday;
 
-      if (occupancyError) throw occupancyError;
-
-      const totalSpots = occupancyData.length;
-      const occupiedSpots = occupancyData.filter(s => 
-        s.status === 'occupied' || s.status === 'reserved'
-      ).length;
-      const currentOccupancy = totalSpots > 0 ? (occupiedSpots / totalSpots) * 100 : 0;
-
-      // Get today's bookings and revenue
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from('bookings')
-        .select(`
-          total_amount,
-          parking_spots!inner (
-            zones!inner (
-              sections!inner (
-                locations!inner (
-                  id
-                )
-              )
-            )
-          )
-        `)
-        .eq('parking_spots.zones.sections.locations.id', locationId)
-        .gte('created_at', today.toISOString())
-        .lt('created_at', tomorrow.toISOString())
-        .eq('payment_status', 'paid');
-
-      if (bookingsError) throw bookingsError;
-
-      const totalRevenue = bookingsData.reduce((sum, booking) => 
-        sum + parseFloat(booking.total_amount), 0
-      );
-      const bookingsToday = bookingsData.length;
-      const averageRate = bookingsToday > 0 ? totalRevenue / bookingsToday : 0;
-
-      // Get pricing adjustments (mock data for now)
       const priceAdjustments = [
         {
           level: 'Location',

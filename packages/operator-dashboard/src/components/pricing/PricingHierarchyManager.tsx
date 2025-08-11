@@ -4,8 +4,8 @@ import { Button } from '../shared/Button';
 import { Modal } from '../shared/Modal';
 import { PricingConfigForm } from './PricingConfigForm';
 import { PricingInheritanceViewer } from './PricingInheritanceViewer';
-import { HierarchicalPricingService, PricingHierarchyNode } from '../../../../shared/src/services/hierarchical-pricing';
-import { createClient } from '@supabase/supabase-js';
+import { PricingHierarchyNode } from '../../../../shared/src/services/hierarchical-pricing';
+// import { createClient } from '@supabase/supabase-js';
 
 interface PricingHierarchyManagerProps {
   locationId: string;
@@ -22,12 +22,6 @@ export const PricingHierarchyManager: React.FC<PricingHierarchyManagerProps> = (
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createClient(
-    process.env.REACT_APP_SUPABASE_URL!,
-    process.env.REACT_APP_SUPABASE_ANON_KEY!
-  );
-  const pricingService = new HierarchicalPricingService(supabase);
-
   useEffect(() => {
     loadHierarchy();
   }, [locationId]);
@@ -35,8 +29,41 @@ export const PricingHierarchyManager: React.FC<PricingHierarchyManagerProps> = (
   const loadHierarchy = async () => {
     try {
       setLoading(true);
-      const hierarchyData = await pricingService.getPricingHierarchy(locationId);
-      setHierarchy(hierarchyData);
+      // Mock hierarchy data for demo
+      const mockHierarchy: PricingHierarchyNode = {
+        id: locationId,
+        name: 'Main Parking Facility',
+        level: 'location',
+        pricingConfig: undefined,
+        children: [
+          {
+            id: 'section-1',
+            name: 'Section A',
+            level: 'section',
+            parentId: locationId,
+            pricingConfig: undefined,
+            children: [
+              {
+                id: 'zone-1',
+                name: 'Zone 1',
+                level: 'zone',
+                parentId: 'section-1',
+                pricingConfig: undefined,
+                children: [
+                  {
+                    id: 'spot-1',
+                    name: 'A1-001',
+                    level: 'spot',
+                    parentId: 'zone-1',
+                    pricingConfig: undefined
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      setHierarchy(mockHierarchy);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load pricing hierarchy');
     } finally {
@@ -65,7 +92,8 @@ export const PricingHierarchyManager: React.FC<PricingHierarchyManagerProps> = (
 
   const handleCopyToChildren = async (node: PricingHierarchyNode) => {
     try {
-      await pricingService.copyPricingToChildren(node.level, node.id, false);
+      // Mock implementation for demo
+      console.log('Copying pricing to children for node:', node.id);
       await loadHierarchy();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to copy pricing to children');
@@ -74,7 +102,8 @@ export const PricingHierarchyManager: React.FC<PricingHierarchyManagerProps> = (
 
   const handleRemovePricing = async (node: PricingHierarchyNode) => {
     try {
-      await pricingService.removePricing(node.level, node.id);
+      // Mock implementation for demo
+      console.log('Removing pricing for node:', node.id);
       await loadHierarchy();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove pricing');

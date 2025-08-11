@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../shared/Button';
 import { Input } from '../shared/Input';
 import { Card } from '../shared/Card';
-import { PricingHierarchyNode, HierarchicalPricingService } from '../../../../shared/src/services/hierarchical-pricing';
+import { PricingHierarchyNode } from '../../../../shared/src/services/hierarchical-pricing';
 import { CreatePricingConfigData, CreateVehicleTypeRateData, CreateTimeBasedRateData, CreateHolidayRateData } from '../../../../shared/src/models/pricing';
 import { VehicleType } from '../../../../shared/src/types';
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js';
 
 interface PricingConfigFormProps {
   node: PricingHierarchyNode;
@@ -29,12 +29,6 @@ export const PricingConfigForm: React.FC<PricingConfigFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'basic' | 'vehicles' | 'time' | 'holidays'>('basic');
-
-  const supabase = createClient(
-    process.env.REACT_APP_SUPABASE_URL!,
-    process.env.REACT_APP_SUPABASE_ANON_KEY!
-  );
-  const pricingService = new HierarchicalPricingService(supabase);
 
   useEffect(() => {
     if (node.pricingConfig) {
@@ -69,11 +63,10 @@ export const PricingConfigForm: React.FC<PricingConfigFormProps> = ({
     setError(null);
 
     try {
-      await pricingService.updatePricing({
-        hierarchyLevel: node.level,
-        id: node.id,
-        pricingConfig: formData
-      });
+      // Mock implementation for demo
+      console.log('Saving pricing configuration:', formData);
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       onSave();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save pricing configuration');

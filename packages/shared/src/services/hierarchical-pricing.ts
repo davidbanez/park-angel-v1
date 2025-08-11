@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { PricingConfig, CreatePricingConfigData } from '../models/pricing';
 
 export type HierarchyLevel = 'location' | 'section' | 'zone' | 'spot';

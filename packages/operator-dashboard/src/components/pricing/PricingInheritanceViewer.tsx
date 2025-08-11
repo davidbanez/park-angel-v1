@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../shared/Button';
 import { Card } from '../shared/Card';
-import { PricingHierarchyNode, HierarchicalPricingService, PricingInheritanceResult } from '../../../../shared/src/services/hierarchical-pricing';
+import { PricingHierarchyNode, PricingInheritanceResult } from '../../../../shared/src/services/hierarchical-pricing';
 import { PricingConfig } from '../../../../shared/src/models/pricing';
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js';
 
 interface PricingInheritanceViewerProps {
   node: PricingHierarchyNode;
@@ -18,12 +18,6 @@ export const PricingInheritanceViewer: React.FC<PricingInheritanceViewerProps> =
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createClient(
-    process.env.REACT_APP_SUPABASE_URL!,
-    process.env.REACT_APP_SUPABASE_ANON_KEY!
-  );
-  const pricingService = new HierarchicalPricingService(supabase);
-
   useEffect(() => {
     loadInheritanceDetails();
   }, [node]);
@@ -31,8 +25,22 @@ export const PricingInheritanceViewer: React.FC<PricingInheritanceViewerProps> =
   const loadInheritanceDetails = async () => {
     try {
       setLoading(true);
-      const result = await pricingService.getEffectivePricing(node.level, node.id);
-      setInheritanceResult(result);
+      // Mock inheritance result for demo
+      const mockResult: PricingInheritanceResult = {
+        level: node.level,
+        id: node.id,
+        name: node.name,
+        effectivePricing: {
+          baseRate: { value: 50 },
+          vatRate: { value: 12 },
+          occupancyMultiplier: 1.0,
+          vehicleTypeRates: [],
+          timeBasedRates: [],
+          holidayRates: []
+        } as any,
+        source: 'default'
+      };
+      setInheritanceResult(mockResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load pricing details');
     } finally {

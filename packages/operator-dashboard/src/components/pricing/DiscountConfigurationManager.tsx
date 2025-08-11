@@ -3,8 +3,8 @@ import { Card } from '../shared/Card';
 import { Button } from '../shared/Button';
 import { Input } from '../shared/Input';
 import { Modal } from '../shared/Modal';
-import { HierarchicalPricingService, DiscountConfiguration } from '../../../../shared/src/services/hierarchical-pricing';
-import { createClient } from '@supabase/supabase-js';
+import { DiscountConfiguration } from '../../../../shared/src/services/hierarchical-pricing';
+// import { createClient } from '@supabase/supabase-js';
 
 interface DiscountConfigurationManagerProps {
   operatorId: string;
@@ -36,12 +36,6 @@ export const DiscountConfigurationManager: React.FC<DiscountConfigurationManager
     isActive: true
   });
 
-  const supabase = createClient(
-    process.env.REACT_APP_SUPABASE_URL!,
-    process.env.REACT_APP_SUPABASE_ANON_KEY!
-  );
-  const pricingService = new HierarchicalPricingService(supabase);
-
   useEffect(() => {
     loadDiscounts();
   }, [operatorId]);
@@ -49,8 +43,30 @@ export const DiscountConfigurationManager: React.FC<DiscountConfigurationManager
   const loadDiscounts = async () => {
     try {
       setLoading(true);
-      const discountConfigs = await pricingService.getDiscountConfigurations(operatorId);
-      setDiscounts(discountConfigs);
+      // Mock discount configurations for demo
+      const mockDiscounts: DiscountConfiguration[] = [
+        {
+          id: '1',
+          name: 'Senior Citizen Discount',
+          type: 'senior',
+          percentage: 20,
+          isVATExempt: true,
+          conditions: {},
+          isActive: true,
+          operatorId
+        },
+        {
+          id: '2',
+          name: 'PWD Discount',
+          type: 'pwd',
+          percentage: 20,
+          isVATExempt: true,
+          conditions: {},
+          isActive: true,
+          operatorId
+        }
+      ];
+      setDiscounts(mockDiscounts);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load discount configurations');
     } finally {
@@ -89,20 +105,9 @@ export const DiscountConfigurationManager: React.FC<DiscountConfigurationManager
     setError(null);
 
     try {
-      if (editingDiscount) {
-        await pricingService.updateDiscountConfiguration(editingDiscount.id, {
-          ...formData,
-          operatorId
-        });
-      } else {
-        await pricingService.createDiscountConfiguration(
-          {
-            ...formData,
-            operatorId
-          },
-          operatorId // createdBy
-        );
-      }
+      // Mock implementation for demo
+      console.log('Saving discount configuration:', formData);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       setShowForm(false);
       await loadDiscounts();
@@ -117,7 +122,8 @@ export const DiscountConfigurationManager: React.FC<DiscountConfigurationManager
     }
 
     try {
-      await pricingService.deleteDiscountConfiguration(discount.id);
+      // Mock implementation for demo
+      console.log('Deleting discount:', discount.id);
       await loadDiscounts();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete discount configuration');
@@ -126,9 +132,8 @@ export const DiscountConfigurationManager: React.FC<DiscountConfigurationManager
 
   const handleToggleActive = async (discount: DiscountConfiguration) => {
     try {
-      await pricingService.updateDiscountConfiguration(discount.id, {
-        isActive: !discount.isActive
-      });
+      // Mock implementation for demo
+      console.log('Toggling discount status:', discount.id);
       await loadDiscounts();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update discount status');
