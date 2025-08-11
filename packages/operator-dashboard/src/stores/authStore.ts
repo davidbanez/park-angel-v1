@@ -1,0 +1,139 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { supabase } from '@shared/lib/supabase';
+import type { User, Session } from '@supabase/supabase-js';
+
+interface AuthState {
+  user: User | null;
+  session: Session | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  
+  // Actions
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  verifyOTP: (email: string, otp: string) => Promise<void>;
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      session: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+
+      signIn: async (email: string, password: string) => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          if (data.user && data.session) {
+            set({
+              user: data.user,
+              session: data.session,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+          }
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Sign in failed',
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      signOut: async () => {
+        set({ isLoading: true });
+        
+        try {
+          const { error } = await supabase.auth.signOut();
+          
+          if (error) {
+            throw error;
+          }
+
+          set({
+            user: null,
+            session: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Sign out failed',
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      verifyOTP: async (email: string, otp: string) => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            email,
+            token: otp,
+            type: 'email',
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          if (data.user && data.session) {
+            set({
+              user: data.user,
+              session: data.session,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+          }
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'OTP verification failed',
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      setUser: (user: User | null) => {
+        set({ user, isAuthenticated: !!user });
+      },
+
+      setSession: (session: Session | null) => {
+        set({ session });
+      },
+
+      clearError: () => {
+        set({ error: null });
+      },
+    }),
+    {
+      name: 'operator-auth-storage',
+      partialize: (state) => ({
+        user: state.user,
+        session: state.session,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
+  )
+);

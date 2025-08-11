@@ -15,15 +15,26 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "composite": true,
-    "types": ["vite/client", "node"],
+    "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@shared/*": ["../shared/src/*"]
     }
   },
-  "include": ["src/**/*", "vite.config.ts", "vitest.config.ts"],
-  "exclude": ["src/**/*.test.tsx", "src/**/*.test.ts", "src/test/**/*"],
-  "references": [{ "path": "../shared" }]
+  "include": [
+    "src/**/*",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.tsx",
+    "src/**/*.test.ts",
+    "src/test/**/*",
+    "src/navigation/MobileNavigator.tsx",
+    "src/screens/**/*",
+    "App.tsx",
+    "app.json",
+    "babel.config.js",
+    "metro.config.js"
+  ]
 }

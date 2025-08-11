@@ -11,6 +11,7 @@ import { Settings } from './pages/Settings'
 import { VehicleManagement } from './pages/VehicleManagement'
 import { DiscountManagement } from './pages/DiscountManagement'
 import { AdvertisementManagement } from './pages/AdvertisementManagement'
+import APIManagement from './pages/APIManagement'
 import { Login } from './pages/Login'
 import { useAuthStore } from './stores/authStore'
 
@@ -68,6 +69,7 @@ function App() {
         <Route path="/vehicles" element={<VehicleManagement />} />
         <Route path="/discounts" element={<DiscountManagement />} />
         <Route path="/advertisements" element={<AdvertisementManagement />} />
+        <Route path="/api-management" element={<APIManagement />} />
         <Route path="/reports" element={<ReportsAnalytics />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

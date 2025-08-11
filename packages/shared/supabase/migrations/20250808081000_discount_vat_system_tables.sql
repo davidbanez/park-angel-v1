@@ -59,7 +59,7 @@ CREATE INDEX IF NOT EXISTS idx_discount_applications_applied_by ON discount_appl
 CREATE INDEX IF NOT EXISTS idx_discount_applications_created_at ON discount_applications(created_at);
 
 -- Create triggers for updated_at timestamps
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_discount_rules_updated_at') THEN
     CREATE TRIGGER update_discount_rules_updated_at 
@@ -72,7 +72,7 @@ BEGIN
       BEFORE UPDATE ON vat_config 
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
   END IF;
-END $;
+END $$;
 
 -- Enable RLS
 ALTER TABLE discount_rules ENABLE ROW LEVEL SECURITY;
@@ -93,10 +93,10 @@ CREATE POLICY "Operators can manage their own discount rules" ON discount_rules
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM users u
-      JOIN operators o ON u.id = o.admin_user_id
+      JOIN operator_profiles op ON u.id = op.operator_id
       WHERE u.id = auth.uid() 
       AND u.user_type = 'operator'
-      AND o.id = discount_rules.operator_id
+      AND op.operator_id = discount_rules.operator_id
     )
   );
 
@@ -117,10 +117,10 @@ CREATE POLICY "Operators can manage their own VAT configs" ON vat_config
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM users u
-      JOIN operators o ON u.id = o.admin_user_id
+      JOIN operator_profiles op ON u.id = op.operator_id
       WHERE u.id = auth.uid() 
       AND u.user_type = 'operator'
-      AND o.id = vat_config.operator_id
+      AND op.operator_id = vat_config.operator_id
     )
   );
 
@@ -141,11 +141,15 @@ CREATE POLICY "Operators can view discount applications for their bookings" ON d
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM users u
-      JOIN operators o ON u.id = o.admin_user_id
-      JOIN bookings b ON b.operator_id = o.id
+      JOIN operator_profiles op ON u.id = op.operator_id
+      JOIN bookings b ON b.id = discount_applications.booking_id
+      JOIN parking_spots ps ON b.spot_id = ps.id
+      JOIN zones z ON ps.zone_id = z.id
+      JOIN sections s ON z.section_id = s.id
+      JOIN locations l ON s.location_id = l.id
       WHERE u.id = auth.uid() 
       AND u.user_type = 'operator'
-      AND b.id = discount_applications.booking_id
+      AND l.operator_id = op.operator_id
     )
   );
 

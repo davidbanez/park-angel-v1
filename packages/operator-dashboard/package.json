@@ -6,12 +6,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "dev:mobile": "expo start",
+    "build": "tsc --project tsconfig.build.json && vite build",
+    "build:mobile": "expo build",
     "preview": "vite preview",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --no-error-on-unmatched-pattern",
     "type-check": "tsc --noEmit",
-    "test": "echo \"No tests specified\" && exit 0",
-    "clean": "rm -rf dist node_modules"
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist node_modules .expo"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -20,7 +23,10 @@
     "zustand": "^4.4.1",
     "@tanstack/react-query": "^4.32.6",
     "@supabase/supabase-js": "^2.33.1",
-    "tailwindcss": "^3.3.3"
+    "@park-angel/shared": "file:../shared",
+    "tailwindcss": "^3.3.3",
+    "lucide-react": "^0.263.1",
+    "recharts": "^2.7.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
@@ -28,6 +34,48 @@
     "@vitejs/plugin-react": "^4.0.3",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.27",
-    "vite": "^4.4.5"
+    "typescript": "^5.1.6",
+    "vite": "^4.4.5",
+    "vitest": "^0.34.1",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "jsdom": "^22.1.0",
+    "eslint": "^8.45.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "peerDependencies": {
+    "react-native": "0.72.4",
+    "@react-navigation/native": "^6.1.7",
+    "@react-navigation/stack": "^6.3.17",
+    "@react-navigation/bottom-tabs": "^6.5.8",
+    "react-native-screens": "~3.22.0",
+    "react-native-safe-area-context": "4.6.3",
+    "expo": "~49.0.0",
+    "expo-router": "^2.0.0",
+    "expo-status-bar": "~1.6.0",
+    "nativewind": "^2.0.11",
+    "react-native-svg": "13.9.0",
+    "lucide-react-native": "^0.263.1",
+    "react-native-chart-kit": "^6.12.0",
+    "react-native-gesture-handler": "~2.12.0",
+    "react-native-reanimated": "~3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "react-native": { "optional": true },
+    "@react-navigation/native": { "optional": true },
+    "@react-navigation/stack": { "optional": true },
+    "@react-navigation/bottom-tabs": { "optional": true },
+    "react-native-screens": { "optional": true },
+    "react-native-safe-area-context": { "optional": true },
+    "expo": { "optional": true },
+    "expo-router": { "optional": true },
+    "expo-status-bar": { "optional": true },
+    "nativewind": { "optional": true },
+    "react-native-svg": { "optional": true },
+    "lucide-react-native": { "optional": true },
+    "react-native-chart-kit": { "optional": true },
+    "react-native-gesture-handler": { "optional": true },
+    "react-native-reanimated": { "optional": true }
   }
 }

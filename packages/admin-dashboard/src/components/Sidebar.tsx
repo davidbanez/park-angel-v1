@@ -9,6 +9,7 @@ import {
   TruckIcon,
   TagIcon,
   MegaphoneIcon,
+  CodeBracketIcon,
   ChartBarIcon,
   CogIcon,
   XMarkIcon
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'Vehicle Management', href: '/vehicles', icon: TruckIcon },
   { name: 'Discount Management', href: '/discounts', icon: TagIcon },
   { name: 'Advertisement Management', href: '/advertisements', icon: MegaphoneIcon },
+  { name: 'API Management', href: '/api-management', icon: CodeBracketIcon },
   { name: 'Reports & Analytics', href: '/reports', icon: ChartBarIcon },
   { name: 'Settings', href: '/settings', icon: CogIcon },
 ]
