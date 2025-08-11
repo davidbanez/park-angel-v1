@@ -181,7 +181,7 @@
   - Build user engagement analytics
   - _Requirements: 2.1, 2.2, 2.12-2.13_
 
-- [ ] 20. Develop parking facility layout designer
+- [x] 20. Develop parking facility layout designer
   - Create drag-and-drop layout designer interface
   - Implement drawing tools for parking spots, lanes, entrances, exits
   - Build element palette with elevators, stairs, and facility features

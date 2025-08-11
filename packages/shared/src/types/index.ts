@@ -6,6 +6,7 @@ export * from './payment';
 export * from './financial-reporting';
 export * from './advertisement';
 export * from './api-management';
+export * from './facility-layout';
 
 // Export operator types with explicit re-export to avoid conflicts
 export type {
