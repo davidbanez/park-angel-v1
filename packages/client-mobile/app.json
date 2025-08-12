@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "Park Angel",
+    "slug": "park-angel-client",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#8B5CF6"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.parkangel.client",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Use Face ID to authenticate and sign in to your account securely.",
+        "NSCameraUsageDescription": "Camera access is needed to take photos of documents for discount applications."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#8B5CF6"
+      },
+      "package": "com.parkangel.client",
+      "permissions": [
+        "USE_FINGERPRINT",
+        "USE_BIOMETRIC",
+        "CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#8B5CF6"
+        }
+      ],
+      "expo-secure-store",
+      "expo-location",
+      "expo-local-authentication",
+      "expo-auth-session",
+      "expo-web-browser"
+    ],
+    "scheme": "com.parkangel.client",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "park-angel-client"
+      }
+    }
+  }
+}

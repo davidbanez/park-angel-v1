@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS performance_metrics (
     feature TEXT NOT NULL,
     response_time INTEGER NOT NULL, -- in milliseconds
     error BOOLEAN DEFAULT false,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     user_id UUID REFERENCES auth.users(id),
     metadata JSONB DEFAULT '{}'
 );
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS api_usage_logs (
     request_size INTEGER, -- in bytes
     response_size INTEGER, -- in bytes
     billing_amount DECIMAL(10,2) DEFAULT 0,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     ip_address INET,
     user_agent TEXT,
     metadata JSONB DEFAULT '{}'
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS audit_trail (
     action TEXT NOT NULL,
     user_id UUID REFERENCES auth.users(id),
     details JSONB DEFAULT '{}',
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- SLA targets configuration
@@ -134,17 +134,33 @@ CREATE INDEX IF NOT EXISTS idx_scheduled_reports_is_active ON scheduled_reports(
 CREATE INDEX IF NOT EXISTS idx_scheduled_reports_created_by ON scheduled_reports(created_by);
 
 CREATE INDEX IF NOT EXISTS idx_performance_metrics_feature ON performance_metrics(feature);
-CREATE INDEX IF NOT EXISTS idx_performance_metrics_timestamp ON performance_metrics(timestamp);
+CREATE INDEX IF NOT EXISTS idx_performance_metrics_created_at ON performance_metrics(created_at);
 CREATE INDEX IF NOT EXISTS idx_performance_metrics_user_id ON performance_metrics(user_id);
 
 CREATE INDEX IF NOT EXISTS idx_api_usage_logs_api_key_id ON api_usage_logs(api_key_id);
-CREATE INDEX IF NOT EXISTS idx_api_usage_logs_timestamp ON api_usage_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_api_usage_logs_created_at ON api_usage_logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_api_usage_logs_endpoint ON api_usage_logs(endpoint);
 
 CREATE INDEX IF NOT EXISTS idx_violation_reports_location_id ON violation_reports(location_id);
 CREATE INDEX IF NOT EXISTS idx_violation_reports_status ON violation_reports(status);
 CREATE INDEX IF NOT EXISTS idx_violation_reports_created_at ON violation_reports(created_at);
-CREATE INDEX IF NOT EXISTS idx_violation_reports_reported_by ON violation_reports(reported_by);
+-- Create index on reported_by column if it exists, otherwise on reporter_id
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'violation_reports' 
+        AND column_name = 'reported_by'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_violation_reports_reported_by ON violation_reports(reported_by);
+    ELSIF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'violation_reports' 
+        AND column_name = 'reporter_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_violation_reports_reporter_id ON violation_reports(reporter_id);
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_financial_reports_type ON financial_reports(type);
 CREATE INDEX IF NOT EXISTS idx_financial_reports_generated_at ON financial_reports(generated_at);
@@ -153,7 +169,17 @@ CREATE INDEX IF NOT EXISTS idx_financial_reports_generated_by ON financial_repor
 CREATE INDEX IF NOT EXISTS idx_audit_trail_entity_type ON audit_trail(entity_type);
 CREATE INDEX IF NOT EXISTS idx_audit_trail_entity_id ON audit_trail(entity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_trail_user_id ON audit_trail(user_id);
-CREATE INDEX IF NOT EXISTS idx_audit_trail_timestamp ON audit_trail(timestamp);
+-- Create index on created_at column if it exists in audit_trail table
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'audit_trail' 
+        AND column_name = 'created_at'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_audit_trail_created_at ON audit_trail(created_at);
+    END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_audit_trail_action ON audit_trail(action);
 
 CREATE INDEX IF NOT EXISTS idx_report_exports_report_id ON report_exports(report_id);
@@ -178,9 +204,9 @@ CREATE POLICY "Users can view their own generated reports" ON generated_reports
 CREATE POLICY "Admins can view all generated reports" ON generated_reports
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
@@ -194,9 +220,9 @@ CREATE POLICY "Users can view their own scheduled reports" ON scheduled_reports
 CREATE POLICY "Admins can view all scheduled reports" ON scheduled_reports
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
@@ -207,9 +233,9 @@ CREATE POLICY "Users can manage their own scheduled reports" ON scheduled_report
 CREATE POLICY "Admins can view all performance metrics" ON performance_metrics
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
@@ -220,34 +246,68 @@ CREATE POLICY "System can insert performance metrics" ON performance_metrics
 CREATE POLICY "Admins can view all API usage logs" ON api_usage_logs
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
 CREATE POLICY "System can insert API usage logs" ON api_usage_logs
     FOR INSERT WITH CHECK (true);
 
--- Violation reports policies
-CREATE POLICY "Users can view violation reports for their locations" ON violation_reports
-    FOR SELECT USING (
-        reported_by = auth.uid() OR
-        EXISTS (
-            SELECT 1 FROM locations l
-            JOIN user_profiles up ON l.operator_id = up.user_id
-            WHERE l.id = violation_reports.location_id
-            AND up.user_id = auth.uid()
-        ) OR
-        EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
-        )
-    );
+-- Violation reports policies (handle both reported_by and reporter_id column names)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'violation_reports' 
+        AND column_name = 'reported_by'
+    ) THEN
+        -- Use reported_by column
+        CREATE POLICY "Users can view violation reports for their locations" ON violation_reports
+            FOR SELECT USING (
+                reported_by = auth.uid() OR
+                EXISTS (
+                    SELECT 1 FROM locations l
+                    JOIN user_profiles up ON l.operator_id = up.user_id
+                    WHERE l.id = violation_reports.location_id
+                    AND up.user_id = auth.uid()
+                ) OR
+                EXISTS (
+                    SELECT 1 FROM users 
+                    WHERE id = auth.uid() 
+                    AND user_type = 'admin'
+                )
+            );
 
-CREATE POLICY "Users can create violation reports" ON violation_reports
-    FOR INSERT WITH CHECK (reported_by = auth.uid());
+        CREATE POLICY "Users can create violation reports" ON violation_reports
+            FOR INSERT WITH CHECK (reported_by = auth.uid());
+    ELSIF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'violation_reports' 
+        AND column_name = 'reporter_id'
+    ) THEN
+        -- Use reporter_id column
+        CREATE POLICY "Users can view violation reports for their locations" ON violation_reports
+            FOR SELECT USING (
+                reporter_id = auth.uid() OR
+                EXISTS (
+                    SELECT 1 FROM locations l
+                    JOIN user_profiles up ON l.operator_id = up.user_id
+                    WHERE l.id = violation_reports.location_id
+                    AND up.user_id = auth.uid()
+                ) OR
+                EXISTS (
+                    SELECT 1 FROM users 
+                    WHERE id = auth.uid() 
+                    AND user_type = 'admin'
+                )
+            );
+
+        CREATE POLICY "Users can create violation reports" ON violation_reports
+            FOR INSERT WITH CHECK (reporter_id = auth.uid());
+    END IF;
+END $$;
 
 CREATE POLICY "Operators can update violation reports for their locations" ON violation_reports
     FOR UPDATE USING (
@@ -258,9 +318,9 @@ CREATE POLICY "Operators can update violation reports for their locations" ON vi
             AND up.user_id = auth.uid()
         ) OR
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
@@ -268,9 +328,9 @@ CREATE POLICY "Operators can update violation reports for their locations" ON vi
 CREATE POLICY "Admins can view all financial reports" ON financial_reports
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
@@ -281,9 +341,9 @@ CREATE POLICY "System can create financial reports" ON financial_reports
 CREATE POLICY "Admins can view all audit trail entries" ON audit_trail
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
@@ -294,9 +354,9 @@ CREATE POLICY "System can create audit trail entries" ON audit_trail
 CREATE POLICY "Admins can manage SLA targets" ON sla_targets
     FOR ALL USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
@@ -307,9 +367,9 @@ CREATE POLICY "Users can view their own report exports" ON report_exports
 CREATE POLICY "Admins can view all report exports" ON report_exports
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM user_profiles 
-            WHERE user_id = auth.uid() 
-            AND user_type IN ('admin', 'super_admin')
+            SELECT 1 FROM users 
+            WHERE id = auth.uid() 
+            AND user_type = 'admin'
         )
     );
 
@@ -412,11 +472,11 @@ BEGIN
     
     -- Delete old performance metrics (keep last 30 days)
     DELETE FROM performance_metrics 
-    WHERE timestamp < NOW() - INTERVAL '30 days';
+    WHERE created_at < NOW() - INTERVAL '30 days';
     
     -- Delete old API usage logs (keep last 90 days)
     DELETE FROM api_usage_logs 
-    WHERE timestamp < NOW() - INTERVAL '90 days';
+    WHERE created_at < NOW() - INTERVAL '90 days';
     
     RETURN deleted_count;
 END;

@@ -40,6 +40,12 @@ export * from './advertisement-management';
 // Export API management services
 export * from './api-management';
 
+// Export customer management services
+export * from './customer-management';
+
+// Export operator reporting services
+export * from './operator-reporting';
+
 // Service factory for creating service instances
 import { createClient } from '@supabase/supabase-js';
 import { LocationManagementServiceImpl } from './parking-management';
