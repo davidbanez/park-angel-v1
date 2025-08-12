@@ -19,7 +19,11 @@
       "bundleIdentifier": "com.parkangel.client",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Use Face ID to authenticate and sign in to your account securely.",
-        "NSCameraUsageDescription": "Camera access is needed to take photos of documents for discount applications."
+        "NSCameraUsageDescription": "Camera access is needed to take photos of documents for discount applications.",
+        "NSLocationWhenInUseUsageDescription": "Location access is needed to find nearby parking spots and provide navigation."
+      },
+      "config": {
+        "googleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
       }
     },
     "android": {
@@ -31,8 +35,15 @@
       "permissions": [
         "USE_FINGERPRINT",
         "USE_BIOMETRIC",
-        "CAMERA"
-      ]
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY_HERE"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",
