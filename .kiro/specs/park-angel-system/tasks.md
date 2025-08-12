@@ -255,7 +255,7 @@
   - Build availability calendar for advance booking
   - _Requirements: 3.2-3.3, 8.1-8.12_
 
-- [ ] 28. Build booking and payment system
+- [x] 28. Build booking and payment system
   - Create spot selection and booking flow
   - Implement facility layout viewer for visual spot selection
   - Build "Park Now" and "Reserve Parking" features

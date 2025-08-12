@@ -6,18 +6,20 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Dimensions,
   Alert,
 } from 'react-native';
 import type { ParkingSpot } from '@park-angel/shared/src/types/parking';
 import { ParkingService, SpotAvailability } from '../../services/parkingService';
 import { AvailabilityCalendar } from './AvailabilityCalendar';
+import { SpotSelectionModal } from '../booking/SpotSelectionModal';
+import { ParkNowModal } from '../booking/ParkNowModal';
+import { BookingFlow } from '../booking/BookingFlow';
 
 interface SpotDetailsModalProps {
   visible: boolean;
   spot: ParkingSpot;
   onClose: () => void;
-  onBook: () => void;
+  onBook: (bookingId: string) => void;
 }
 
 // const { height: screenHeight } = Dimensions.get('window');
@@ -31,6 +33,11 @@ export const SpotDetailsModal: React.FC<SpotDetailsModalProps> = ({
   const [availability, setAvailability] = useState<SpotAvailability[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showSpotSelection, setShowSpotSelection] = useState(false);
+  const [showParkNow, setShowParkNow] = useState(false);
+  const [showBookingFlow, setShowBookingFlow] = useState(false);
+  const [selectedStartTime, setSelectedStartTime] = useState<Date | null>(null);
+  const [selectedEndTime, setSelectedEndTime] = useState<Date | null>(null);
 
   useEffect(() => {
     if (visible && spot) {
@@ -205,9 +212,10 @@ export const SpotDetailsModal: React.FC<SpotDetailsModalProps> = ({
         <View style={styles.actionButtons}>
           <TouchableOpacity
             style={[styles.button, styles.secondaryButton]}
-            onPress={onClose}
+            onPress={() => setShowParkNow(true)}
+            disabled={spot.status !== 'available'}
           >
-            <Text style={styles.secondaryButtonText}>Close</Text>
+            <Text style={styles.secondaryButtonText}>Park Now</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -215,14 +223,59 @@ export const SpotDetailsModal: React.FC<SpotDetailsModalProps> = ({
               styles.primaryButton,
               spot.status !== 'available' && styles.disabledButton
             ]}
-            onPress={onBook}
+            onPress={() => setShowSpotSelection(true)}
             disabled={spot.status !== 'available'}
           >
             <Text style={styles.primaryButtonText}>
-              {spot.status === 'available' ? 'Book Now' : 'Unavailable'}
+              {spot.status === 'available' ? 'Reserve Parking' : 'Unavailable'}
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Booking Modals */}
+        <SpotSelectionModal
+          visible={showSpotSelection}
+          spot={spot}
+          onClose={() => setShowSpotSelection(false)}
+          onSelectTimeSlot={(startTime, endTime) => {
+            setSelectedStartTime(startTime);
+            setSelectedEndTime(endTime);
+            setShowSpotSelection(false);
+            setShowBookingFlow(true);
+          }}
+        />
+
+        <ParkNowModal
+          visible={showParkNow}
+          spot={spot}
+          onClose={() => setShowParkNow(false)}
+          onBookingComplete={(bookingId) => {
+            setShowParkNow(false);
+            onClose();
+            onBook(bookingId);
+          }}
+        />
+
+        {selectedStartTime && selectedEndTime && (
+          <BookingFlow
+            visible={showBookingFlow}
+            spot={spot}
+            startTime={selectedStartTime}
+            endTime={selectedEndTime}
+            onClose={() => {
+              setShowBookingFlow(false);
+              setSelectedStartTime(null);
+              setSelectedEndTime(null);
+            }}
+            onBookingComplete={(bookingId) => {
+              setShowBookingFlow(false);
+              setSelectedStartTime(null);
+              setSelectedEndTime(null);
+              onClose();
+              onBook(bookingId);
+            }}
+          />
+        )}
       </View>
     </Modal>
   );

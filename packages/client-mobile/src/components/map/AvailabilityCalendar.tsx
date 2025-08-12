@@ -12,12 +12,18 @@ interface AvailabilityCalendarProps {
   availability: SpotAvailability[];
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
+  onTimeSlotSelect?: (startTime: Date, endTime: Date) => void;
+  selectedStartTime?: Date | null;
+  selectedEndTime?: Date | null;
 }
 
 export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   availability,
   selectedDate,
   onDateSelect,
+  onTimeSlotSelect,
+  selectedStartTime,
+  selectedEndTime,
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -189,16 +195,58 @@ export const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
                 .slice(0, 12) // Show first 12 available slots
                 .map((slot, index) => {
                   const startTime = new Date(slot.startTime);
+                  const endTime = new Date(slot.endTime);
                   const timeStr = startTime.toLocaleTimeString('en-US', {
                     hour: 'numeric',
                     hour12: true,
                   });
+
+                  const isSelected = selectedStartTime && selectedEndTime &&
+                    startTime.getTime() >= selectedStartTime.getTime() &&
+                    endTime.getTime() <= selectedEndTime.getTime();
+
+                  const handleSlotPress = () => {
+                    if (!onTimeSlotSelect) return;
+
+                    if (!selectedStartTime) {
+                      // First selection - set start time
+                      onTimeSlotSelect(startTime, endTime);
+                    } else if (!selectedEndTime) {
+                      // Second selection - set end time
+                      if (startTime >= selectedStartTime) {
+                        onTimeSlotSelect(selectedStartTime, endTime);
+                      } else {
+                        // If selected time is before start time, reset selection
+                        onTimeSlotSelect(startTime, endTime);
+                      }
+                    } else {
+                      // Reset selection
+                      onTimeSlotSelect(startTime, endTime);
+                    }
+                  };
                   
                   return (
-                    <View key={index} style={styles.timeSlot}>
-                      <Text style={styles.timeSlotTime}>{timeStr}</Text>
-                      <Text style={styles.timeSlotPrice}>₱{slot.price}</Text>
-                    </View>
+                    <TouchableOpacity 
+                      key={index} 
+                      style={[
+                        styles.timeSlot,
+                        isSelected && styles.selectedTimeSlot
+                      ]}
+                      onPress={handleSlotPress}
+                    >
+                      <Text style={[
+                        styles.timeSlotTime,
+                        isSelected && styles.selectedTimeSlotText
+                      ]}>
+                        {timeStr}
+                      </Text>
+                      <Text style={[
+                        styles.timeSlotPrice,
+                        isSelected && styles.selectedTimeSlotText
+                      ]}>
+                        ₱{slot.price}
+                      </Text>
+                    </TouchableOpacity>
                   );
                 })}
             </View>
@@ -348,6 +396,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     minWidth: 60,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  selectedTimeSlot: {
+    backgroundColor: '#8B5CF6',
+    borderColor: '#7C3AED',
   },
   timeSlotTime: {
     fontSize: 12,
@@ -358,5 +412,8 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#8B5CF6',
     marginTop: 2,
+  },
+  selectedTimeSlotText: {
+    color: 'white',
   },
 });
