@@ -29,6 +29,7 @@ export interface OperatorReportParams {
   startDate: Date;
   endDate: Date;
   operatorId: string;
+  generatedBy: string;
   filters?: OperatorReportFilters;
   groupBy?: 'day' | 'week' | 'month' | 'location' | 'zone' | 'vehicle_type';
   sortBy?: string;

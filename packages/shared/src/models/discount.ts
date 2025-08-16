@@ -1,5 +1,5 @@
 import { Money, Percentage, UserId } from './value-objects';
-import { DiscountType } from '../types';
+import { DiscountType } from '../types/common';
 
 export class DiscountRule {
   constructor(

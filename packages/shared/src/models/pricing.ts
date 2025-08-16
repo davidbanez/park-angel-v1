@@ -1,5 +1,5 @@
 import { Money, Percentage, UserId } from './value-objects';
-import { VehicleType } from '../types';
+import { VehicleType } from '../types/common';
 
 export class PricingConfig {
   constructor(

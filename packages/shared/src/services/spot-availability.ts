@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { ParkingSpot, SpotStatus } from '../models/location';
-import { Booking, BookingStatus } from '../models/booking';
+import { ParkingSpot } from '../models/location';
+import { SpotStatus } from '../types/common';
+import { Booking } from '../models/booking';
+import { BookingStatus } from '../types/common';
 import { VehicleType } from '../types';
 import { 
   SpotAvailabilityService, 
@@ -82,7 +84,7 @@ export class SpotAvailabilityServiceImpl implements SpotAvailabilityService {
     
     for (const spotData of spots) {
       const isAvailable = await this.checkAvailability(
-        spotData.id, 
+        (spotData as any).id as string, 
         criteria.startTime, 
         criteria.endTime
       );
@@ -203,9 +205,9 @@ export class SpotAvailabilityServiceImpl implements SpotAvailabilityService {
     // Calculate available until time
     let availableUntil: Date | undefined;
     if (spot.status === 'available' && nextBooking) {
-      availableUntil = new Date(nextBooking.start_time);
+      availableUntil = new Date((nextBooking as any).start_time as string);
     } else if (currentBooking) {
-      availableUntil = new Date(currentBooking.end_time);
+      availableUntil = new Date((currentBooking as any).end_time as string);
     }
 
     return {

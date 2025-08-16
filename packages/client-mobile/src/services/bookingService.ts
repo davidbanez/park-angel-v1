@@ -3,7 +3,7 @@ import type {
   Booking, 
   AppliedDiscount
 } from '@park-angel/shared/src/types/booking';
-import type { ParkingSpot } from '@park-angel/shared/src/types/parking';
+
 
 export interface CreateBookingParams {
   spotId: string;

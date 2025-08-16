@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 
 // Mock crypto for Node.js environment
 Object.defineProperty(global, 'crypto', {
@@ -12,21 +12,21 @@ Object.defineProperty(global, 'crypto', {
   }
 });
 
+// Mock the supabase import to avoid database dependencies
+vi.mock('../../lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(),
+    auth: { getUser: vi.fn() },
+    rpc: vi.fn()
+  }
+}));
+
 // Create a simple test that focuses on utility methods that don't require database access
 describe('APIManagementService Utility Methods', () => {
   // Import the service dynamically to avoid mocking issues
   let APIManagementService: any;
 
   beforeAll(async () => {
-    // Mock the supabase import to avoid database dependencies
-    vi.doMock('../../config/supabase', () => ({
-      supabase: {
-        from: vi.fn(),
-        auth: { getUser: vi.fn() },
-        rpc: vi.fn()
-      }
-    }));
-
     const module = await import('../api-management');
     APIManagementService = module.APIManagementService;
   });

@@ -57,7 +57,7 @@ export const useOperatorStore = create<OperatorState>((set, get) => ({
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('operators')
         .select('*')
         .eq('user_id', user.id)
@@ -68,7 +68,7 @@ export const useOperatorStore = create<OperatorState>((set, get) => ({
       }
 
       set({
-        operatorData: data,
+        operatorData: data as OperatorData,
         isLoading: false,
       });
     } catch (error) {

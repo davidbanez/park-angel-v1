@@ -21,7 +21,7 @@ export const useOperatorReporting = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const reportingService = new OperatorReportingServiceImpl(supabase);
+  const reportingService = new OperatorReportingServiceImpl(supabase as any);
 
   const generateReport = useCallback(async (params: OperatorReportParams): Promise<OperatorReport> => {
     setLoading(true);

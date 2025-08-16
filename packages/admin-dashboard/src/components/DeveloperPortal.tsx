@@ -242,11 +242,11 @@ export const DeveloperPortal: React.FC<DeveloperPortalProps> = ({ developerId })
         <DataTable
           data={applications}
           columns={[
-            { key: 'name', header: 'Name' },
-            { key: 'app_type', header: 'Type' },
+            { key: 'name', label: 'Name' },
+            { key: 'app_type', label: 'Type' },
             { 
               key: 'status', 
-              header: 'Status',
+              label: 'Status',
               render: (app: APIApplication) => (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   app.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -259,12 +259,12 @@ export const DeveloperPortal: React.FC<DeveloperPortalProps> = ({ developerId })
             },
             {
               key: 'created_at',
-              header: 'Created',
+              label: 'Created',
               render: (app: APIApplication) => new Date(app.created_at).toLocaleDateString()
             },
             {
               key: 'actions',
-              header: 'Actions',
+              label: 'Actions',
               render: (app: APIApplication) => (
                 <div className="flex space-x-2">
                   <Button
@@ -296,20 +296,20 @@ export const DeveloperPortal: React.FC<DeveloperPortalProps> = ({ developerId })
         <DataTable
           data={apiKeys}
           columns={[
-            { key: 'key_name', header: 'Name' },
+            { key: 'key_name', label: 'Name' },
             { 
               key: 'api_key', 
-              header: 'API Key',
+              label: 'API Key',
               render: (key: APIKey) => (
                 <code className="bg-gray-100 px-2 py-1 rounded text-sm">
                   {key.api_key.substring(0, 20)}...
                 </code>
               )
             },
-            { key: 'environment', header: 'Environment' },
+            { key: 'environment', label: 'Environment' },
             { 
               key: 'is_active', 
-              header: 'Status',
+              label: 'Status',
               render: (key: APIKey) => (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   key.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -320,13 +320,13 @@ export const DeveloperPortal: React.FC<DeveloperPortalProps> = ({ developerId })
             },
             {
               key: 'last_used_at',
-              header: 'Last Used',
+              label: 'Last Used',
               render: (key: APIKey) => key.last_used_at ? 
                 new Date(key.last_used_at).toLocaleDateString() : 'Never'
             },
             {
               key: 'actions',
-              header: 'Actions',
+              label: 'Actions',
               render: (key: APIKey) => (
                 <div className="flex space-x-2">
                   <Button

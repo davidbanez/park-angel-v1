@@ -10,7 +10,8 @@ import {
   RemittanceFrequency,
   RemittanceStatus,
   ExportFormat,
-  DiscrepancyType
+  DiscrepancyType,
+  ReconciliationRuleType
 } from '../../types/financial-reporting';
 
 // Mock Supabase client
@@ -466,7 +467,7 @@ describe('Financial Reporting System', () => {
       const ruleData = {
         name: 'Amount Validation',
         description: 'Validates transaction amounts',
-        ruleType: 'amount_validation' as const,
+        ruleType: ReconciliationRuleType.AMOUNT_VALIDATION,
         conditions: [],
         actions: [],
         isActive: true

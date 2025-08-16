@@ -42,7 +42,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [bookingCalculation, setBookingCalculation] = useState<BookingCalculation | null>(null);
   const [loading, setLoading] = useState(false);
-  const [bookingId, setBookingId] = useState<string | null>(null);
+
 
   const { user } = useAuthStore();
   const { setActiveBooking } = useParkingStore();
@@ -139,7 +139,7 @@ export const BookingFlow: React.FC<BookingFlowProps> = ({
         discounts: bookingCalculation.discounts
       });
 
-      setBookingId(booking.id);
+
 
       // Process payment
       let paymentResult;

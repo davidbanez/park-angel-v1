@@ -1,7 +1,25 @@
 import { createClient, RealtimeChannel } from '@supabase/supabase-js';
-import { ParkingSpot, SpotStatus } from '../models/location';
+import { validateQueryResult, safeAccess, isValidDatabaseResult } from '../lib/supabase';
+import { ParkingSpot } from '../models/location';
+import { SpotStatus } from '../types/common';
 import { LocationOccupancyInfo } from './parking-management';
 import { RealtimeOccupancyService } from './parking-management';
+
+// Realtime payload type definitions
+interface RealtimePayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new?: Record<string, any>;
+  old?: Record<string, any>;
+  schema: string;
+  table: string;
+}
+
+interface PayloadData {
+  id: string;
+  spot_id: string | null;
+  status: string;
+  updated_at: string;
+}
 
 export class RealtimeOccupancyServiceImpl implements RealtimeOccupancyService {
   private channels: Map<string, RealtimeChannel> = new Map();
@@ -94,13 +112,16 @@ export class RealtimeOccupancyServiceImpl implements RealtimeOccupancyService {
           },
           async (payload) => {
             // Check if booking affects this location
-            if (payload.new && payload.new.spot_id) {
-              const affectsLocation = await this.checkIfBookingAffectsLocation(
-                payload.new.spot_id,
-                locationId
-              );
-              if (affectsLocation) {
-                await this.handleLocationUpdate(locationId, payload);
+            if (this.isValidBookingPayload(payload)) {
+              const spotId = this.safeGetSpotId(payload.new);
+              if (spotId) {
+                const affectsLocation = await this.checkIfBookingAffectsLocation(
+                  spotId,
+                  locationId
+                );
+                if (affectsLocation) {
+                  await this.handleLocationUpdate(locationId, payload);
+                }
               }
             }
           }
@@ -172,6 +193,13 @@ export class RealtimeOccupancyServiceImpl implements RealtimeOccupancyService {
 
   private async handleSpotUpdate(spotId: string, payload: any): Promise<void> {
     try {
+      // Validate payload data
+      const validatedPayload = this.validatePayloadData(payload.new);
+      if (!validatedPayload) {
+        console.warn('Invalid payload data received for spot update');
+        return;
+      }
+
       // Get updated spot data
       const { data: spotData, error } = await this.supabase
         .from('parking_spots')
@@ -179,7 +207,7 @@ export class RealtimeOccupancyServiceImpl implements RealtimeOccupancyService {
         .eq('id', spotId)
         .single();
 
-      if (error || !spotData) {
+      if (error || !spotData || !isValidDatabaseResult(spotData)) {
         console.error('Failed to get updated spot data:', error);
         return;
       }
@@ -237,22 +265,32 @@ export class RealtimeOccupancyServiceImpl implements RealtimeOccupancyService {
   }
 
   private async getLocationIdForSpot(spotId: string): Promise<string | null> {
-    const { data, error } = await this.supabase
+    // Get spot and zone information separately to avoid relationship issues
+    const { data: spot, error: spotError } = await this.supabase
       .from('parking_spots')
-      .select(`
-        zones!inner (
-          sections!inner (
-            locations!inner (
-              id
-            )
-          )
-        )
-      `)
+      .select('zone_id')
       .eq('id', spotId)
       .single();
 
-    if (error || !data) return null;
-    return data.zones.sections.locations.id;
+    if (spotError || !spot || !isValidDatabaseResult(spot)) return null;
+
+    const { data: zone, error: zoneError } = await this.supabase
+      .from('zones')
+      .select('section_id')
+      .eq('id', spot.zone_id)
+      .single();
+
+    if (zoneError || !zone || !isValidDatabaseResult(zone)) return null;
+
+    const { data: section, error: sectionError } = await this.supabase
+      .from('sections')
+      .select('location_id')
+      .eq('id', zone.section_id)
+      .single();
+
+    if (sectionError || !section || !isValidDatabaseResult(section)) return null;
+
+    return String(section.location_id);
   }
 
   private async calculateLocationOccupancy(locationId: string): Promise<LocationOccupancyInfo> {
@@ -309,6 +347,43 @@ export class RealtimeOccupancyServiceImpl implements RealtimeOccupancyService {
       new Date(data.created_at),
       new Date(data.updated_at)
     );
+  }
+
+  // Type guard and validation methods
+  private isValidBookingPayload(payload: any): payload is RealtimePayload {
+    return payload && 
+           typeof payload === 'object' && 
+           'new' in payload && 
+           payload.new && 
+           typeof payload.new === 'object';
+  }
+
+  private safeGetSpotId(data: any): string | null {
+    if (data && typeof data === 'object') {
+      const spotId = data.spot_id;
+      return typeof spotId === 'string' ? spotId : 
+             typeof spotId === 'number' ? String(spotId) : null;
+    }
+    return null;
+  }
+
+  private validatePayloadData(payload: any): PayloadData | null {
+    if (!payload || typeof payload !== 'object') return null;
+    
+    return {
+      id: this.safeGetString(payload, 'id'),
+      spot_id: this.safeGetSpotId(payload),
+      status: this.safeGetString(payload, 'status'),
+      updated_at: this.safeGetString(payload, 'updated_at')
+    };
+  }
+
+  private safeGetString(obj: any, key: string): string {
+    if (obj && typeof obj === 'object' && key in obj) {
+      const value = obj[key];
+      return typeof value === 'string' ? value : String(value || '');
+    }
+    return '';
   }
 
   // Cleanup method to remove all subscriptions

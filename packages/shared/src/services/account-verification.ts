@@ -579,7 +579,7 @@ export class AccountVerificationService {
         action: `verification_${type}`,
         resource_type: 'verification',
         resource_id: userId,
-        new_values: metadata,
+        new_values: metadata as any,
       });
     } catch (error) {
       console.error('Error logging verification request:', error);

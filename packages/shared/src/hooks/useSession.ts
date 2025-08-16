@@ -83,7 +83,7 @@ export function useSession(): SessionState & SessionActions {
 
   // Set up session validation interval
   useEffect(() => {
-    if (!session) return;
+    if (!session) return () => {}; // Return empty cleanup function
 
     const interval = setInterval(async () => {
       try {
@@ -233,7 +233,7 @@ export function useSessionTimeout(warningMinutes = 5): {
   useEffect(() => {
     if (!sessionData) {
       setTimeUntilExpiry(null);
-      return;
+      return () => {}; // Return empty cleanup function
     }
 
     const updateTimeUntilExpiry = () => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, TouchableOpacity, Text } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useParkingStore } from '../../stores/parkingStore';
@@ -7,6 +7,8 @@ import useParkingData from '../../hooks/useParkingData';
 import type { ParkingSpot } from '@park-angel/shared/src/types/parking';
 import { ParkingMarker } from './ParkingMarker';
 import { SpotDetailsModal } from './SpotDetailsModal';
+import { NavigationView } from '../navigation/NavigationView';
+import { FacilityNavigationView } from '../navigation/FacilityNavigationView';
 
 // Custom purple map style
 const purpleMapStyle = [
@@ -176,9 +178,10 @@ const purpleMapStyle = [
 
 interface ParkingMapProps {
   onSpotSelect?: (spot: ParkingSpot) => void;
+  onStartNavigation?: (spot: ParkingSpot) => void;
 }
 
-export const ParkingMap: React.FC<ParkingMapProps> = ({ onSpotSelect }) => {
+export const ParkingMap: React.FC<ParkingMapProps> = ({ onSpotSelect, onStartNavigation }) => {
   const mapRef = useRef<MapView>(null);
   const [region, setRegion] = useState<Region>({
     latitude: 14.5995, // Manila default

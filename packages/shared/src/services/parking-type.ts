@@ -1,17 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
-import { ParkingType } from '../models/location';
+import { validateQueryResult, safeAccess, isValidDatabaseResult } from '../lib/supabase';
+import { ParkingType, PARKING_TYPE } from '../types/common';
 import { Booking } from '../models/booking';
-import { ParkingTypeService, ParkingTypeLogic, ValidationResult } from './parking-management';
+import { ParkingTypeService, ParkingTypeLogic, HostedParkingLogicInterface, ValidationResult } from './parking-management';
 
 export class ParkingTypeServiceImpl implements ParkingTypeService {
   private typeLogicMap: Map<ParkingType, ParkingTypeLogic>;
 
   constructor(private supabase: ReturnType<typeof createClient>) {
-    this.typeLogicMap = new Map([
-      [ParkingType.HOSTED, new HostedParkingLogic(supabase)],
-      [ParkingType.STREET, new StreetParkingLogic(supabase)],
-      [ParkingType.FACILITY, new FacilityParkingLogic(supabase)]
-    ]);
+    this.typeLogicMap = new Map<ParkingType, ParkingTypeLogic>();
+    this.typeLogicMap.set(PARKING_TYPE.HOSTED, new HostedParkingLogic(supabase));
+    this.typeLogicMap.set(PARKING_TYPE.STREET, new StreetParkingLogic(supabase));
+    this.typeLogicMap.set(PARKING_TYPE.FACILITY, new FacilityParkingLogic(supabase));
   }
 
   getTypeSpecificLogic(type: ParkingType): ParkingTypeLogic {
@@ -34,7 +34,7 @@ export class ParkingTypeServiceImpl implements ParkingTypeService {
 }
 
 // Hosted Parking Logic (AirBnb-style private parking spaces)
-export class HostedParkingLogic implements ParkingTypeLogic {
+export class HostedParkingLogic implements HostedParkingLogicInterface {
   constructor(private supabase: ReturnType<typeof createClient>) {}
 
   async validateBooking(booking: any): Promise<ValidationResult> {
@@ -66,7 +66,8 @@ export class HostedParkingLogic implements ParkingTypeLogic {
       }
 
       // Check minimum booking duration (hosts can set their own minimums)
-      const minDuration = listing.pricing?.minimumDuration || 60; // minutes
+      const pricingData = listing.pricing && typeof listing.pricing === 'object' ? listing.pricing : {};
+      const minDuration = (pricingData as any)?.minimumDuration || 60; // minutes
       const bookingDuration = (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60);
       
       if (bookingDuration < minDuration) {
@@ -74,7 +75,7 @@ export class HostedParkingLogic implements ParkingTypeLogic {
       }
 
       // Check maximum advance booking
-      const maxAdvanceDays = listing.pricing?.maxAdvanceBooking || 30;
+      const maxAdvanceDays = (pricingData as any)?.maxAdvanceBooking || 30;
       const advanceDays = (booking.startTime.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
       
       if (advanceDays > maxAdvanceDays) {
@@ -116,12 +117,13 @@ export class HostedParkingLogic implements ParkingTypeLogic {
       return basePrice; // Fallback to base price
     }
 
-    const pricing = listing.pricing;
-    let finalPrice = pricing.hourlyRate || basePrice;
+    const pricing = listing.pricing && typeof listing.pricing === 'object' ? listing.pricing : {};
+    const pricingData = pricing as any;
+    let finalPrice = pricingData.hourlyRate || basePrice;
 
     // Apply time-based pricing
-    if (pricing.timeBasedRates) {
-      const timeRate = this.getTimeBasedRate(pricing.timeBasedRates, startTime);
+    if (pricingData.timeBasedRates) {
+      const timeRate = this.getTimeBasedRate(pricingData.timeBasedRates, startTime);
       if (timeRate) {
         finalPrice = timeRate.rate;
       }
@@ -129,13 +131,13 @@ export class HostedParkingLogic implements ParkingTypeLogic {
 
     // Apply weekend/weekday pricing
     const isWeekend = startTime.getDay() === 0 || startTime.getDay() === 6;
-    if (isWeekend && pricing.weekendMultiplier) {
-      finalPrice *= pricing.weekendMultiplier;
+    if (isWeekend && pricingData.weekendMultiplier) {
+      finalPrice *= pricingData.weekendMultiplier;
     }
 
     // Apply seasonal pricing
-    if (pricing.seasonalRates) {
-      const seasonalRate = this.getSeasonalRate(pricing.seasonalRates, startTime);
+    if (pricingData.seasonalRates) {
+      const seasonalRate = this.getSeasonalRate(pricingData.seasonalRates, startTime);
       if (seasonalRate) {
         finalPrice *= seasonalRate.multiplier;
       }
@@ -151,10 +153,13 @@ export class HostedParkingLogic implements ParkingTypeLogic {
       .eq('spot_id', spotId)
       .single();
 
-    return listing?.access_instructions || 'No specific access instructions provided.';
+    const instructions = listing && typeof listing.access_instructions === 'string' 
+      ? listing.access_instructions 
+      : 'No specific access instructions provided.';
+    return instructions;
   }
 
-  private checkHostAvailability(
+  checkHostAvailability(
     availability: any,
     startTime: Date,
     endTime: Date
@@ -178,7 +183,7 @@ export class HostedParkingLogic implements ParkingTypeLogic {
     return startHour >= daySchedule.startHour && endHour <= daySchedule.endHour;
   }
 
-  private async validateGuestRequirements(
+  async validateGuestRequirements(
     userId: string,
     requirements: any
   ): Promise<ValidationResult> {
@@ -216,14 +221,14 @@ export class HostedParkingLogic implements ParkingTypeLogic {
     };
   }
 
-  private getTimeBasedRate(timeBasedRates: any[], dateTime: Date): any {
+  getTimeBasedRate(timeBasedRates: any[], dateTime: Date): any {
     const hour = dateTime.getHours();
     return timeBasedRates.find(rate => 
       hour >= rate.startHour && hour < rate.endHour
     );
   }
 
-  private getSeasonalRate(seasonalRates: any[], dateTime: Date): any {
+  getSeasonalRate(seasonalRates: any[], dateTime: Date): any {
     const month = dateTime.getMonth() + 1; // 1-12
     return seasonalRates.find(rate =>
       month >= rate.startMonth && month <= rate.endMonth
@@ -253,31 +258,34 @@ export class StreetParkingLogic implements ParkingTypeLogic {
         }
 
         // Check maximum parking duration
-        if (regulations.maxDuration) {
+        const maxDuration = typeof regulations.maxDuration === 'number' ? regulations.maxDuration : null;
+        if (maxDuration) {
           const bookingDuration = (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60);
-          if (bookingDuration > regulations.maxDuration) {
-            errors.push(`Maximum parking duration is ${regulations.maxDuration} minutes`);
+          if (bookingDuration > maxDuration) {
+            errors.push(`Maximum parking duration is ${maxDuration} minutes`);
           }
         }
 
         // Check vehicle type restrictions
-        if (regulations.vehicleRestrictions && regulations.vehicleRestrictions.length > 0) {
+        const vehicleRestrictions = Array.isArray(regulations.vehicleRestrictions) ? regulations.vehicleRestrictions : [];
+        if (vehicleRestrictions.length > 0) {
           const { data: vehicle } = await this.supabase
             .from('vehicles')
             .select('type')
             .eq('id', booking.vehicleId)
             .single();
 
-          if (vehicle && !regulations.vehicleRestrictions.includes(vehicle.type)) {
+          if (vehicle && !vehicleRestrictions.includes(vehicle.type)) {
             errors.push('Vehicle type not allowed in this parking area');
           }
         }
 
         // Check permit requirements
         if (regulations.permitRequired) {
-          const hasPermit = await this.checkUserPermit(booking.userId, regulations.permitType);
+          const permitType = typeof regulations.permitType === 'string' ? regulations.permitType : 'general';
+          const hasPermit = await this.checkUserPermit(booking.userId, permitType);
           if (!hasPermit) {
-            errors.push(`${regulations.permitType} permit required`);
+            errors.push(`${permitType} permit required`);
           }
         }
       }
@@ -317,49 +325,82 @@ export class StreetParkingLogic implements ParkingTypeLogic {
       return basePrice;
     }
 
-    let finalPrice = rates.hourlyRate || basePrice;
+    const ratesData = rates && typeof rates === 'object' ? rates : {};
+    const hourlyRate = typeof (ratesData as any).hourlyRate === 'number' ? (ratesData as any).hourlyRate : basePrice;
+    let finalPrice = hourlyRate;
 
     // Apply time-of-day pricing
     const hour = startTime.getHours();
+    const rushHourMultiplier = typeof (ratesData as any).rushHourMultiplier === 'number' ? (ratesData as any).rushHourMultiplier : 1.5;
+    const nightMultiplier = typeof (ratesData as any).nightMultiplier === 'number' ? (ratesData as any).nightMultiplier : 0.5;
+    const weekendMultiplier = typeof (ratesData as any).weekendMultiplier === 'number' ? (ratesData as any).weekendMultiplier : 0.8;
+    
     if (hour >= 7 && hour <= 9) {
-      finalPrice *= (rates.rushHourMultiplier || 1.5); // Morning rush
+      finalPrice *= rushHourMultiplier; // Morning rush
     } else if (hour >= 17 && hour <= 19) {
-      finalPrice *= (rates.rushHourMultiplier || 1.5); // Evening rush
+      finalPrice *= rushHourMultiplier; // Evening rush
     } else if (hour >= 22 || hour <= 6) {
-      finalPrice *= (rates.nightMultiplier || 0.5); // Night discount
+      finalPrice *= nightMultiplier; // Night discount
     }
 
     // Apply day-of-week pricing
     const dayOfWeek = startTime.getDay();
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      finalPrice *= (rates.weekendMultiplier || 0.8); // Weekend discount
+    if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend
+      finalPrice *= weekendMultiplier; // Weekend discount
     }
 
     return Math.round(finalPrice * 100) / 100;
   }
 
   async getAccessInstructions(spotId: string): Promise<string> {
+    // Get spot information with simplified query to avoid relationship issues
     const { data: spot } = await this.supabase
       .from('parking_spots')
-      .select(`
-        *,
-        zones!inner (
-          sections!inner (
-            locations!inner (
-              address
-            )
-          )
-        )
-      `)
+      .select('id, number, zone_id')
       .eq('id', spotId)
       .single();
 
-    if (!spot) {
+    if (!spot || !isValidDatabaseResult(spot)) {
       return 'Parking spot information not available.';
     }
 
-    const address = spot.zones.sections.locations.address;
-    return `Street parking at ${address.street}, ${address.city}. Look for spot number ${spot.number}. Follow local parking signs and regulations.`;
+    // Get location information separately
+    const { data: zone } = await this.supabase
+      .from('zones')
+      .select('section_id')
+      .eq('id', spot.zone_id)
+      .single();
+
+    if (!zone || !isValidDatabaseResult(zone)) {
+      return `Street parking spot ${spot.number}. Follow local parking signs and regulations.`;
+    }
+
+    const { data: section } = await this.supabase
+      .from('sections')
+      .select('location_id')
+      .eq('id', zone.section_id)
+      .single();
+
+    if (!section || !isValidDatabaseResult(section)) {
+      return `Street parking spot ${spot.number}. Follow local parking signs and regulations.`;
+    }
+
+    const { data: location } = await this.supabase
+      .from('locations')
+      .select('address')
+      .eq('id', section.location_id)
+      .single();
+
+    if (!location || !isValidDatabaseResult(location)) {
+      return `Street parking spot ${spot.number}. Follow local parking signs and regulations.`;
+    }
+
+    const address = location.address && typeof location.address === 'object' ? location.address : {};
+    const addressData = address as any;
+    const street = addressData.street || 'Unknown Street';
+    const city = addressData.city || 'Unknown City';
+    
+    return `Street parking at ${street}, ${city}. Look for spot number ${spot.number}. Follow local parking signs and regulations.`;
   }
 
   private isWithinEnforcementHours(
@@ -449,7 +490,8 @@ export class FacilityParkingLogic implements ParkingTypeLogic {
 
         // Check access requirements (key card, gate code, etc.)
         if (facility.accessRequirements) {
-          const hasAccess = await this.checkFacilityAccess(booking.userId, facility.id);
+          const facilityId = typeof facility.id === 'string' ? facility.id : '';
+          const hasAccess = await this.checkFacilityAccess(booking.userId, facilityId);
           if (!hasAccess) {
             errors.push('Facility access credentials required');
           }
@@ -500,27 +542,28 @@ export class FacilityParkingLogic implements ParkingTypeLogic {
       return basePrice;
     }
 
-    const pricing = facility.pricing_config;
-    let finalPrice = pricing.hourlyRate || basePrice;
+    const pricingConfig = facility.pricing_config && typeof facility.pricing_config === 'object' ? facility.pricing_config : {};
+    const pricingData = pricingConfig as any;
+    let finalPrice = typeof pricingData.hourlyRate === 'number' ? pricingData.hourlyRate : basePrice;
 
     // Different pricing models based on facility type
     if (facility.facility_type === 'pay_on_exit') {
       // Pay-on-exit facilities often have tiered pricing
       const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60); // hours
       
-      if (pricing.tieredRates) {
-        finalPrice = this.calculateTieredPrice(pricing.tieredRates, duration);
+      if (pricingData.tieredRates) {
+        finalPrice = this.calculateTieredPrice(pricingData.tieredRates, duration);
       }
     } else if (facility.facility_type === 'reservation') {
       // Reservation facilities may have flat rates or premium pricing
-      if (pricing.flatRate) {
-        return pricing.flatRate;
+      if (typeof pricingData.flatRate === 'number') {
+        return pricingData.flatRate;
       }
     }
 
     // Apply facility-specific multipliers
-    if (pricing.premiumMultiplier && this.isPremiumTime(startTime)) {
-      finalPrice *= pricing.premiumMultiplier;
+    if (typeof pricingData.premiumMultiplier === 'number' && this.isPremiumTime(startTime)) {
+      finalPrice *= pricingData.premiumMultiplier;
     }
 
     // Apply floor/level pricing (premium floors cost more)
@@ -556,21 +599,29 @@ export class FacilityParkingLogic implements ParkingTypeLogic {
       return 'Facility information not available.';
     }
 
-    const spot = facility.parking_spots;
-    const location = spot.zones.sections.locations;
-    
-    let instructions = `Park at ${location.name}, located at ${location.address.street}, ${location.address.city}.\n`;
-    instructions += `Your spot is ${spot.number} in ${spot.zones.sections.name} - ${spot.zones.name}.\n`;
+    // Get spot information separately to avoid relationship issues
+    const { data: spot } = await this.supabase
+      .from('parking_spots')
+      .select('number, zone_id')
+      .eq('id', spotId)
+      .single();
 
-    if (facility.access_instructions) {
+    if (!spot || !isValidDatabaseResult(spot)) {
+      return 'Parking spot information not available.';
+    }
+    
+    let instructions = `Welcome to the parking facility!\n`;
+    instructions += `Your spot is ${spot.number}.\n`;
+
+    if (facility.access_instructions && typeof facility.access_instructions === 'string') {
       instructions += `\nAccess Instructions: ${facility.access_instructions}`;
     }
 
-    if (facility.gate_code) {
+    if (facility.gate_code && typeof facility.gate_code === 'string') {
       instructions += `\nGate Code: ${facility.gate_code}`;
     }
 
-    if (facility.parking_instructions) {
+    if (facility.parking_instructions && typeof facility.parking_instructions === 'string') {
       instructions += `\nParking Instructions: ${facility.parking_instructions}`;
     }
 
@@ -666,9 +717,10 @@ export class FacilityParkingLogic implements ParkingTypeLogic {
     }
 
     // Ground floor and first floor are premium (closer to exit)
-    if (spot.floor_level <= 1) {
+    const floorLevel = typeof spot.floor_level === 'number' ? spot.floor_level : 1;
+    if (floorLevel <= 1) {
       return 1.2; // 20% premium
-    } else if (spot.floor_level >= 5) {
+    } else if (floorLevel >= 5) {
       return 0.9; // 10% discount for higher floors
     }
 

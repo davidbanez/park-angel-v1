@@ -1,5 +1,8 @@
-import { DiscountType } from '../types';
+import { DiscountType, AuthProvider, UserType, UserStatus, PermissionAction, PermissionCondition, USER_STATUS } from '../types/common';
 import { Email, PhoneNumber, UserId } from './value-objects';
+
+// Re-export types for backward compatibility
+export type { UserType, UserStatus, PermissionAction, PermissionCondition } from '../types/common';
 
 export class User {
   constructor(
@@ -22,7 +25,7 @@ export class User {
       UserProfile.create(data.profile),
       data.authProvider,
       data.userType,
-      UserStatus.ACTIVE,
+      USER_STATUS.ACTIVE,
       data.discountEligibility || [],
       now,
       now
@@ -36,24 +39,24 @@ export class User {
 
   activate(): void {
     if (
-      this.status === UserStatus.INACTIVE ||
-      this.status === UserStatus.SUSPENDED
+      this.status === USER_STATUS.INACTIVE ||
+      this.status === USER_STATUS.SUSPENDED
     ) {
-      this.status = UserStatus.ACTIVE;
+      this.status = USER_STATUS.ACTIVE;
       this.updatedAt = new Date();
     }
   }
 
   deactivate(): void {
-    if (this.status === UserStatus.ACTIVE) {
-      this.status = UserStatus.INACTIVE;
+    if (this.status === USER_STATUS.ACTIVE) {
+      this.status = USER_STATUS.INACTIVE;
       this.updatedAt = new Date();
     }
   }
 
   suspend(): void {
-    if (this.status === UserStatus.ACTIVE) {
-      this.status = UserStatus.SUSPENDED;
+    if (this.status === USER_STATUS.ACTIVE) {
+      this.status = USER_STATUS.SUSPENDED;
       this.updatedAt = new Date();
     }
   }
@@ -78,11 +81,11 @@ export class User {
   }
 
   isActive(): boolean {
-    return this.status === UserStatus.ACTIVE;
+    return this.status === USER_STATUS.ACTIVE;
   }
 
   canPerformAction(): boolean {
-    return this.status === UserStatus.ACTIVE;
+    return this.status === USER_STATUS.ACTIVE;
   }
 
   toJSON() {
@@ -249,34 +252,8 @@ export class Permission {
   }
 }
 
-// Enums and Types
-export enum AuthProvider {
-  EMAIL = 'email',
-  GOOGLE = 'google',
-  FACEBOOK = 'facebook',
-}
-
-export enum UserType {
-  CLIENT = 'client',
-  HOST = 'host',
-  OPERATOR = 'operator',
-  ADMIN = 'admin',
-  POS = 'pos',
-}
-
-export enum UserStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  SUSPENDED = 'suspended',
-}
-
-export type PermissionAction = 'create' | 'read' | 'update' | 'delete';
-
-export interface PermissionCondition {
-  field: string;
-  operator: 'equals' | 'greater_than' | 'less_than' | 'contains';
-  value: string | number;
-}
+// Enums and Types - now imported from common types
+// These are kept for backward compatibility but should use the imported types
 
 // Data Transfer Objects
 export interface CreateUserData {

@@ -1,5 +1,5 @@
 // Parking-related type definitions
-import type { PricingConfig } from '../models/pricing';
+import type { VehicleType, ParkingType, SpotStatus } from './common';
 
 export interface Location {
   id: string;
@@ -9,7 +9,7 @@ export interface Location {
   address: Address;
   coordinates: Coordinates;
   sections: Section[];
-  pricing: PricingConfig;
+  pricing?: any; // Will be properly typed when PricingConfig is available
   settings: LocationSettings;
 }
 
@@ -18,7 +18,7 @@ export interface Section {
   locationId: string;
   name: string;
   zones: Zone[];
-  pricing?: PricingConfig;
+  pricing?: any; // Will be properly typed when PricingConfig is available
 }
 
 export interface Zone {
@@ -26,7 +26,7 @@ export interface Zone {
   sectionId: string;
   name: string;
   spots: ParkingSpot[];
-  pricing?: PricingConfig;
+  pricing?: any; // Will be properly typed when PricingConfig is available
 }
 
 export interface ParkingSpot {
@@ -36,7 +36,7 @@ export interface ParkingSpot {
   type: VehicleType;
   status: 'available' | 'occupied' | 'reserved' | 'maintenance';
   coordinates: Coordinates;
-  pricing?: PricingConfig;
+  pricing?: any; // Will be properly typed when PricingConfig is available
   amenities: string[];
 }
 
@@ -75,4 +75,4 @@ export interface TimeSlot {
   is24Hours: boolean;
 }
 
-export type VehicleType = 'car' | 'motorcycle' | 'truck' | 'van' | 'suv';
+// VehicleType is now imported from common types

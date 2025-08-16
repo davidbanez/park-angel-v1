@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
-import { UserType } from '../models/user';
+import { UserType, USER_TYPE } from '../types/common';
 
 export interface SessionData {
   id: string;
@@ -44,7 +44,7 @@ export class SessionService {
    */
   static initializePolicies(): void {
     // Admin sessions - more restrictive
-    this.sessionPolicies.set(UserType.ADMIN, {
+    this.sessionPolicies.set(USER_TYPE.ADMIN, {
       ...this.DEFAULT_POLICY,
       maxConcurrentSessions: 2,
       sessionTimeout: 240, // 4 hours
@@ -53,7 +53,7 @@ export class SessionService {
     });
 
     // Operator sessions
-    this.sessionPolicies.set(UserType.OPERATOR, {
+    this.sessionPolicies.set(USER_TYPE.OPERATOR, {
       ...this.DEFAULT_POLICY,
       maxConcurrentSessions: 3,
       sessionTimeout: 480, // 8 hours
@@ -61,7 +61,7 @@ export class SessionService {
     });
 
     // POS sessions - longer for shift work
-    this.sessionPolicies.set(UserType.POS, {
+    this.sessionPolicies.set(USER_TYPE.POS, {
       ...this.DEFAULT_POLICY,
       maxConcurrentSessions: 1,
       sessionTimeout: 720, // 12 hours
@@ -70,10 +70,10 @@ export class SessionService {
     });
 
     // Host sessions
-    this.sessionPolicies.set(UserType.HOST, this.DEFAULT_POLICY);
+    this.sessionPolicies.set(USER_TYPE.HOST, this.DEFAULT_POLICY);
 
     // Client sessions
-    this.sessionPolicies.set(UserType.CLIENT, {
+    this.sessionPolicies.set(USER_TYPE.CLIENT, {
       ...this.DEFAULT_POLICY,
       maxConcurrentSessions: 5,
       sessionTimeout: 720, // 12 hours
@@ -329,7 +329,7 @@ export class SessionService {
         user_agent: sessionData.userAgent,
         device_id: sessionData.deviceId,
         is_active: sessionData.isActive,
-        metadata: sessionData.metadata,
+        metadata: sessionData.metadata as any,
       });
     } catch (error) {
       console.error('Error persisting session:', error);
@@ -365,11 +365,11 @@ export class SessionService {
         refreshToken: '', // We don't store the actual token
         expiresAt: new Date(data.expires_at),
         lastActivity: new Date(data.last_activity),
-        ipAddress: data.ip_address,
+        ipAddress: data.ip_address as string,
         userAgent: data.user_agent,
         deviceId: data.device_id,
         isActive: data.is_active,
-        metadata: data.metadata || {},
+        metadata: (data.metadata as Record<string, unknown>) || {},
       };
     } catch (error) {
       console.error('Error loading session from database:', error);
@@ -473,10 +473,10 @@ export class SessionService {
     try {
       await supabase.from('audit_logs').insert({
         user_id: userId,
-        action,
-        resource_type: 'session',
-        resource_id: metadata.sessionId,
-        new_values: metadata,
+        action: action,
+        resource_type: 'user_session',
+        resource_id: metadata.sessionId as string,
+        new_values: metadata as any,
       });
     } catch (error) {
       console.error('Error logging session event:', error);
@@ -529,12 +529,12 @@ export class SessionService {
     averageSessionDuration: number;
   }> {
     const activeSessions = Array.from(this.activeSessions.values());
-    const sessionsByUserType: Record<UserType, number> = {
-      [UserType.ADMIN]: 0,
-      [UserType.OPERATOR]: 0,
-      [UserType.POS]: 0,
-      [UserType.HOST]: 0,
-      [UserType.CLIENT]: 0,
+    const sessionsByUserType: Record<string, number> = {
+      [USER_TYPE.ADMIN]: 0,
+      [USER_TYPE.OPERATOR]: 0,
+      [USER_TYPE.POS]: 0,
+      [USER_TYPE.HOST]: 0,
+      [USER_TYPE.CLIENT]: 0,
     };
 
     let totalDuration = 0;

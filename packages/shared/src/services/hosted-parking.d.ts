@@ -1,0 +1,50 @@
+import { createClient } from '@supabase/supabase-js';
+import type { HostedListing, HostProfile, HostPayout, HostEarnings, HostAnalytics, HostOnboardingData, CreateHostedListingData, UpdateHostedListingData, HostGuestMessage, HostGuestConversation, VerificationDocument } from '../types/hosted-parking';
+export interface HostedParkingService {
+    createHostProfile(data: HostOnboardingData): Promise<HostProfile>;
+    getHostProfile(hostId: string): Promise<HostProfile | null>;
+    updateHostProfile(hostId: string, data: Partial<HostProfile>): Promise<HostProfile>;
+    verifyHostDocuments(hostId: string, documentId: string, status: 'approved' | 'rejected', notes?: string): Promise<void>;
+    createListing(data: CreateHostedListingData): Promise<HostedListing>;
+    getHostListings(hostId: string): Promise<HostedListing[]>;
+    getListing(listingId: string): Promise<HostedListing | null>;
+    updateListing(data: UpdateHostedListingData): Promise<HostedListing>;
+    deleteListing(listingId: string): Promise<void>;
+    toggleListingStatus(listingId: string, isActive: boolean): Promise<void>;
+    getHostEarnings(hostId: string): Promise<HostEarnings>;
+    getHostAnalytics(hostId: string, startDate: Date, endDate: Date): Promise<HostAnalytics>;
+    getHostPayouts(hostId: string, limit?: number): Promise<HostPayout[]>;
+    processHostPayout(hostId: string, bookingIds: string[]): Promise<HostPayout>;
+    getHostConversations(hostId: string): Promise<HostGuestConversation[]>;
+    getConversationMessages(conversationId: string): Promise<HostGuestMessage[]>;
+    sendMessage(conversationId: string, senderId: string, content: string, type?: string): Promise<HostGuestMessage>;
+    markMessagesAsRead(conversationId: string, userId: string): Promise<void>;
+    uploadListingPhotos(listingId: string, photos: File[]): Promise<string[]>;
+    deleteListingPhoto(listingId: string, photoUrl: string): Promise<void>;
+    uploadVerificationDocument(hostId: string, type: string, file: File): Promise<VerificationDocument>;
+}
+export declare class SupabaseHostedParkingService implements HostedParkingService {
+    private supabase;
+    constructor(supabase: ReturnType<typeof createClient>);
+    createHostProfile(data: HostOnboardingData): Promise<HostProfile>;
+    getHostProfile(hostId: string): Promise<HostProfile | null>;
+    updateHostProfile(hostId: string, data: Partial<HostProfile>): Promise<HostProfile>;
+    verifyHostDocuments(hostId: string, documentId: string, status: 'approved' | 'rejected', notes?: string): Promise<void>;
+    createListing(data: CreateHostedListingData): Promise<HostedListing>;
+    getHostListings(hostId: string): Promise<HostedListing[]>;
+    getListing(listingId: string): Promise<HostedListing | null>;
+    updateListing(data: UpdateHostedListingData): Promise<HostedListing>;
+    deleteListing(listingId: string): Promise<void>;
+    toggleListingStatus(listingId: string, isActive: boolean): Promise<void>;
+    getHostEarnings(hostId: string): Promise<HostEarnings>;
+    getHostAnalytics(hostId: string, startDate: Date, endDate: Date): Promise<HostAnalytics>;
+    getHostPayouts(hostId: string, limit?: number): Promise<HostPayout[]>;
+    processHostPayout(hostId: string, bookingIds: string[]): Promise<HostPayout>;
+    getHostConversations(hostId: string): Promise<HostGuestConversation[]>;
+    getConversationMessages(conversationId: string): Promise<HostGuestMessage[]>;
+    sendMessage(conversationId: string, senderId: string, content: string, type?: string): Promise<HostGuestMessage>;
+    markMessagesAsRead(conversationId: string, userId: string): Promise<void>;
+    uploadListingPhotos(listingId: string, photos: File[]): Promise<string[]>;
+    deleteListingPhoto(listingId: string, photoUrl: string): Promise<void>;
+    uploadVerificationDocument(hostId: string, type: string, file: File): Promise<VerificationDocument>;
+}

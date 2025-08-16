@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { UserType, PermissionAction } from '../models/user';
+import { UserType, PermissionAction, USER_TYPE } from '../types/common';
 import { useAuth } from '../hooks/useAuth';
 import { usePermission, useRole } from '../hooks/usePermissions';
 
@@ -209,27 +209,27 @@ export function withProtectedRoute<P extends object>(
 
 // Utility components for common protection patterns
 export const AdminOnly: React.FC<{ children: ReactNode }> = ({ children }) => (
-  <ProtectedRoute allowedRoles={[UserType.ADMIN]}>{children}</ProtectedRoute>
+  <ProtectedRoute allowedRoles={[USER_TYPE.ADMIN]}>{children}</ProtectedRoute>
 );
 
 export const OperatorOnly: React.FC<{ children: ReactNode }> = ({
   children,
 }) => (
-  <ProtectedRoute allowedRoles={[UserType.OPERATOR, UserType.ADMIN]}>
+  <ProtectedRoute allowedRoles={[USER_TYPE.OPERATOR, USER_TYPE.ADMIN]}>
     {children}
   </ProtectedRoute>
 );
 
 export const POSOnly: React.FC<{ children: ReactNode }> = ({ children }) => (
   <ProtectedRoute
-    allowedRoles={[UserType.POS, UserType.OPERATOR, UserType.ADMIN]}
+    allowedRoles={[USER_TYPE.POS, USER_TYPE.OPERATOR, USER_TYPE.ADMIN]}
   >
     {children}
   </ProtectedRoute>
 );
 
 export const HostOnly: React.FC<{ children: ReactNode }> = ({ children }) => (
-  <ProtectedRoute allowedRoles={[UserType.HOST, UserType.ADMIN]}>
+  <ProtectedRoute allowedRoles={[USER_TYPE.HOST, USER_TYPE.ADMIN]}>
     {children}
   </ProtectedRoute>
 );

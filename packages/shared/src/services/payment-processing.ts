@@ -1,4 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
+import { 
+  AbstractBaseService, 
+  ServiceResult, 
+  ServiceErrorCode,
+  PaginationParams,
+  PaginatedResult 
+} from './base-service';
+import { 
+  ValidationUtils, 
+  DatabaseTypeGuards 
+} from './type-validation';
 import {
   PaymentProcessor,
   PaymentIntent,
@@ -281,7 +292,7 @@ export class PaymentProcessingServiceImpl implements PaymentProcessingService {
       const processor = this.processors.get(paymentMethod.provider as PaymentProvider);
       if (processor) {
         // Detach from payment processor
-        await processor.detachPaymentMethod(paymentMethod.metadata.paymentMethodId);
+        await processor.detachPaymentMethod((paymentMethod as any).metadata?.paymentMethodId);
       }
 
       // Remove from database

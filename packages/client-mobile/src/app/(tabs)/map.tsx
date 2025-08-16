@@ -21,15 +21,7 @@ export default function MapScreen() {
     console.log('Selected spot:', spot);
   };
 
-  const handleBookingComplete = (bookingId: string) => {
-    // Handle successful booking
-    console.log('Booking completed:', bookingId);
-    Alert.alert(
-      'Booking Confirmed!',
-      'Your parking spot has been reserved successfully.',
-      [{ text: 'OK' }]
-    );
-  };
+
 
   const getActiveFiltersCount = () => {
     let count = 0;

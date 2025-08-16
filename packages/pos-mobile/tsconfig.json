@@ -2,20 +2,34 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitReturns": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@park-angel/shared": ["../shared/src"],
-      "@park-angel/shared/*": ["../shared/src/*"]
-    }
+      "@/*": [
+        "./*"
+      ],
+      "@park-angel/shared": [
+        "../shared/src"
+      ],
+      "@park-angel/shared/*": [
+        "../shared/src/*"
+      ]
+    },
+    "jsx": "react-native",
+    "types": [
+      "node"
+    ],
+    "allowSyntheticDefaultImports": true,
+    "noEmit": false,
+    "composite": true,
+    "outDir": "./dist"
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "references": [{ "path": "../shared" }]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

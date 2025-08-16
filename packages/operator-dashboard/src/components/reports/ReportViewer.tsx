@@ -9,9 +9,7 @@ import {
   OperatorRevenueReportData,
   OperatorOccupancyReportData,
   UserBehaviorReportData,
-  ViolationReportData,
-  VIPUsageReportData,
-  ZonePerformanceReportData,
+
 } from '../../../../shared/src/types/operator-reporting';
 
 interface ReportViewerProps {

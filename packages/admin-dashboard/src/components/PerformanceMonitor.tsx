@@ -105,7 +105,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                 <Button
                   key={period}
                   onClick={() => setSelectedPeriod(period)}
-                  variant={selectedPeriod === period ? 'default' : 'outline'}
+                  variant={selectedPeriod === period ? 'primary' : 'outline'}
                   size="sm"
                   className={selectedPeriod === period ? 'bg-purple-600 text-white' : ''}
                 >
@@ -123,7 +123,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
                 <Button
                   key={feature}
                   onClick={() => handleFeatureToggle(feature)}
-                  variant={selectedFeatures.includes(feature) || selectedFeatures.length === 0 ? 'default' : 'outline'}
+                  variant={selectedFeatures.includes(feature) || selectedFeatures.length === 0 ? 'primary' : 'outline'}
                   size="sm"
                   className={`${
                     selectedFeatures.includes(feature) || selectedFeatures.length === 0 
@@ -204,10 +204,26 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
             <div className="h-80">
               <Chart
                 type="bar"
-                data={chartData}
-                xAxisKey="name"
-                yAxisKeys={['Avg Response Time', 'P95 Response Time', 'SLA Target']}
-                colors={['#8B5CF6', '#F59E0B', '#EF4444']}
+                data={{
+                  labels: chartData.map(item => item.name),
+                  datasets: [
+                    {
+                      label: 'Avg Response Time',
+                      data: chartData.map(item => item['Avg Response Time']),
+                      backgroundColor: '#8B5CF6'
+                    },
+                    {
+                      label: 'P95 Response Time', 
+                      data: chartData.map(item => item['P95 Response Time']),
+                      backgroundColor: '#F59E0B'
+                    },
+                    {
+                      label: 'SLA Target',
+                      data: chartData.map(item => item['SLA Target']),
+                      backgroundColor: '#EF4444'
+                    }
+                  ]
+                }}
               />
             </div>
           </CardContent>

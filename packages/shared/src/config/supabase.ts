@@ -209,6 +209,9 @@ export const initializeSupabaseConfig = (): {
 // Export default configuration
 export const config = initializeSupabaseConfig();
 
+// Re-export supabase client for backward compatibility
+export { supabase } from '../lib/supabase';
+
 // Environment-specific settings
 export const isDevelopment = process.env['NODE_ENV'] === 'development';
 export const isProduction = process.env['NODE_ENV'] === 'production';

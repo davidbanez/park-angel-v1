@@ -331,11 +331,29 @@ export class OperatorReportingServiceImpl implements OperatorReportingService {
       .gte('created_at', params.startDate.toISOString())
       .lte('created_at', params.endDate.toISOString());
 
-    // Calculate revenue metrics
-    const totalRevenue = transactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    // Calculate revenue metrics with proper type handling
+    const totalRevenue = transactions?.reduce((sum, t) => {
+      const amount = this.safeGetNumber(t, 'amount');
+      return sum + amount;
+    }, 0) || 0;
+    
     const transactionCount = transactions?.length || 0;
-    const operatorShare = transactions?.reduce((sum, t) => sum + (t.revenue_shares?.[0]?.operator_share || 0), 0) || 0;
-    const parkAngelShare = transactions?.reduce((sum, t) => sum + (t.revenue_shares?.[0]?.park_angel_share || 0), 0) || 0;
+    
+    const operatorShare = transactions?.reduce((sum, t) => {
+      const shares = this.safeGetArray(t, 'revenue_shares');
+      const operatorShareAmount = shares.length > 0 
+        ? this.safeGetNumber(shares[0], 'operator_share')
+        : 0;
+      return sum + operatorShareAmount;
+    }, 0) || 0;
+    
+    const parkAngelShare = transactions?.reduce((sum, t) => {
+      const shares = this.safeGetArray(t, 'revenue_shares');
+      const parkAngelShareAmount = shares.length > 0
+        ? this.safeGetNumber(shares[0], 'park_angel_share')
+        : 0;
+      return sum + parkAngelShareAmount;
+    }, 0) || 0;
 
     return {
       summary: {
@@ -618,5 +636,30 @@ export class OperatorReportingServiceImpl implements OperatorReportingService {
       return data.summary.totalRevenue;
     }
     return 0;
+  }
+
+  // Type safety helper methods
+  private safeGetNumber(obj: any, key: string): number {
+    if (obj && typeof obj === 'object' && key in obj) {
+      const value = obj[key];
+      return typeof value === 'number' ? value : 0;
+    }
+    return 0;
+  }
+
+  private safeGetString(obj: any, key: string): string {
+    if (obj && typeof obj === 'object' && key in obj) {
+      const value = obj[key];
+      return typeof value === 'string' ? value : '';
+    }
+    return '';
+  }
+
+  private safeGetArray(obj: any, key: string): any[] {
+    if (obj && typeof obj === 'object' && key in obj) {
+      const value = obj[key];
+      return Array.isArray(value) ? value : [];
+    }
+    return [];
   }
 }

@@ -5,8 +5,7 @@ import { DynamicPricingServiceImpl } from '../dynamic-pricing';
 import { BookingWorkflowServiceImpl } from '../booking-workflow';
 import { RealtimeOccupancyServiceImpl } from '../realtime-occupancy';
 import { ParkingTypeServiceImpl } from '../parking-type';
-import { ParkingType, SpotStatus } from '../../models/location';
-import { BookingStatus } from '../../models/booking';
+import { ParkingType, SpotStatus, BookingStatus, PARKING_TYPE, SPOT_STATUS, BOOKING_STATUS } from '../../types/common';
 import { PricingConfig } from '../../models/pricing';
 import { UserId } from '../../models/value-objects';
 
@@ -96,7 +95,7 @@ describe('LocationManagementService', () => {
 
       const locationData = {
         name: 'Test Location',
-        type: ParkingType.FACILITY,
+        type: PARKING_TYPE.FACILITY,
         operatorId: 'op-1',
         address: {
           street: '123 Test St',
@@ -114,7 +113,7 @@ describe('LocationManagementService', () => {
 
       expect(result).toBeDefined();
       expect(result.name).toBe('Test Location');
-      expect(result.type).toBe(ParkingType.FACILITY);
+      expect(result.type).toBe(PARKING_TYPE.FACILITY);
       expect(mockSupabase.from).toHaveBeenCalledWith('locations');
       expect(mockInsert).toHaveBeenCalled();
     });
@@ -135,7 +134,7 @@ describe('LocationManagementService', () => {
 
       const locationData = {
         name: 'Test Location',
-        type: ParkingType.FACILITY,
+        type: PARKING_TYPE.FACILITY,
         operatorId: 'op-1',
         address: {
           street: '123 Test St',
@@ -401,7 +400,7 @@ describe('BookingWorkflowService', () => {
       expect(result).toBeDefined();
       expect(result.userId.value).toBe('user-1');
       expect(result.spotId).toBe('spot-1');
-      expect(result.status).toBe(BookingStatus.PENDING);
+      expect(result.status).toBe(BOOKING_STATUS.PENDING);
     });
 
     it('should throw error when spot is not available', async () => {
@@ -468,7 +467,7 @@ describe('RealtimeOccupancyService', () => {
         })
       });
 
-      await service.updateSpotStatus('spot-1', SpotStatus.OCCUPIED);
+      await service.updateSpotStatus('spot-1', SPOT_STATUS.OCCUPIED);
 
       expect(mockSupabase.from).toHaveBeenCalledWith('parking_spots');
       expect(mockUpdate).toHaveBeenCalled();
@@ -486,7 +485,7 @@ describe('RealtimeOccupancyService', () => {
         })
       });
 
-      await expect(service.updateSpotStatus('spot-1', SpotStatus.OCCUPIED))
+      await expect(service.updateSpotStatus('spot-1', SPOT_STATUS.OCCUPIED))
         .rejects.toThrow('Failed to update spot status: Update failed');
     });
   });
@@ -502,17 +501,17 @@ describe('ParkingTypeService', () => {
 
   describe('getTypeSpecificLogic', () => {
     it('should return hosted parking logic for hosted type', () => {
-      const logic = service.getTypeSpecificLogic(ParkingType.HOSTED);
+      const logic = service.getTypeSpecificLogic(PARKING_TYPE.HOSTED);
       expect(logic).toBeDefined();
     });
 
     it('should return street parking logic for street type', () => {
-      const logic = service.getTypeSpecificLogic(ParkingType.STREET);
+      const logic = service.getTypeSpecificLogic(PARKING_TYPE.STREET);
       expect(logic).toBeDefined();
     });
 
     it('should return facility parking logic for facility type', () => {
-      const logic = service.getTypeSpecificLogic(ParkingType.FACILITY);
+      const logic = service.getTypeSpecificLogic(PARKING_TYPE.FACILITY);
       expect(logic).toBeDefined();
     });
 

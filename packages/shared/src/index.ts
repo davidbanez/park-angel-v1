@@ -1,17 +1,20 @@
-// Park Angel Shared Types and Utilities
+// Park Angel Shared Library - Main Entry Point
+
+// Export type namespaces (recommended approach)
 export * from './types';
 export * from './utils';
 
-// Export domain models (avoiding conflicts with types)
+// Export domain models namespace to avoid conflicts with types
+// Models are available through direct imports from './models'
+// Removed from main index to avoid conflicts with types
+
+// Legacy exports for backward compatibility (will be deprecated)
 export {
   // User models
   User as UserEntity,
   UserProfile as UserProfileEntity,
   UserGroup,
   Permission,
-  AuthProvider,
-  UserType,
-  UserStatus,
 
   // Location models
   Location as LocationEntity,
@@ -20,15 +23,10 @@ export {
   ParkingSpot as ParkingSpotEntity,
   LocationSettings as LocationSettingsEntity,
   OperatingHours as OperatingHoursEntity,
-  ParkingType,
-  SpotStatus,
-
   // Booking models
   Booking as BookingEntity,
   BookingExtension,
   Vehicle,
-  BookingStatus,
-  PaymentStatus,
 
   // Pricing models
   PricingConfig as PricingConfigEntity,
@@ -53,18 +51,12 @@ export {
   MessageAttachment,
   MessageThread,
   MessageEncryption,
-  MessageType,
-  MessageStatus,
-  ConversationType,
 
   // Rating models
   Rating,
   RatingAggregate,
   ScoreDistribution,
   RatingFilter,
-  RatedType,
-  RatingStatus,
-  ReputationLevel,
 
   // Value objects
   UserId,

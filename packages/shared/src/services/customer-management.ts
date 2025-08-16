@@ -7,6 +7,7 @@ import type {
   CustomerSupportMessage,
   CustomerAnalytics 
 } from '../types/user';
+import { DiscountType } from '../types/common';
 
 export class CustomerManagementService {
   // Customer Profile Management
@@ -41,7 +42,7 @@ export class CustomerManagementService {
     }
 
     if (filters?.status) {
-      query = query.eq('status', filters.status);
+      query = query.eq('status', filters.status as 'active' | 'inactive' | 'suspended');
     }
 
     if (filters?.limit) {
@@ -73,8 +74,8 @@ export class CustomerManagementService {
       id: customer.id,
       email: customer.email,
       userType: customer.user_type,
-      status: customer.status,
-      discountEligibility: customer.user_profiles?.discount_eligibility || [],
+      status: customer.status as 'active' | 'inactive' | 'suspended',
+      discountEligibility: (customer.user_profiles?.discount_eligibility || []) as DiscountType[],
       createdAt: new Date(customer.created_at),
       updatedAt: new Date(customer.updated_at),
       authProvider: 'email', // Default, would need to be determined from auth provider
@@ -146,8 +147,8 @@ export class CustomerManagementService {
       id: data.id,
       email: data.email,
       userType: data.user_type,
-      status: data.status,
-      discountEligibility: data.user_profiles?.discount_eligibility || [],
+      status: data.status as 'active' | 'inactive' | 'suspended',
+      discountEligibility: (data.user_profiles?.discount_eligibility || []) as DiscountType[],
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       authProvider: 'email',
@@ -212,7 +213,7 @@ export class CustomerManagementService {
         user_id: vipAssignment.userId,
         operator_id: vipAssignment.operatorId,
         vip_type: vipAssignment.vipType,
-        assigned_spots: vipAssignment.assignedSpots,
+        assigned_spots: JSON.stringify(vipAssignment.assignedSpots),
         time_limit_hours: vipAssignment.timeLimitHours,
         notes: vipAssignment.notes,
         is_active: vipAssignment.isActive,
@@ -220,7 +221,7 @@ export class CustomerManagementService {
         valid_until: vipAssignment.validUntil?.toISOString(),
         created_by: vipAssignment.createdBy
       })
-      .select()
+      .select('*, time_limit_hours, created_by')
       .single();
 
     if (error) {
@@ -231,8 +232,8 @@ export class CustomerManagementService {
       id: data.id,
       userId: data.user_id,
       operatorId: data.operator_id,
-      vipType: data.vip_type,
-      assignedSpots: data.assigned_spots || [],
+      vipType: data.vip_type as VIPType,
+      assignedSpots: JSON.parse(data.assigned_spots as string || '[]'),
       timeLimitHours: data.time_limit_hours,
       notes: data.notes,
       isActive: data.is_active,
@@ -304,8 +305,8 @@ export class CustomerManagementService {
       customerId: data.customer_id,
       operatorId: data.operator_id,
       subject: data.subject,
-      status: data.status,
-      priority: data.priority,
+      status: data.status as 'open' | 'in_progress' | 'resolved' | 'closed',
+      priority: data.priority as 'high' | 'medium' | 'low' | 'urgent',
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
     };
@@ -336,7 +337,7 @@ export class CustomerManagementService {
       customerId: conv.customer_id,
       operatorId: conv.operator_id,
       subject: conv.subject,
-      status: conv.status,
+      status: conv.status as 'open' | 'in_progress' | 'resolved' | 'closed',
       priority: conv.priority,
       createdAt: new Date(conv.created_at),
       updatedAt: new Date(conv.updated_at)
@@ -365,7 +366,7 @@ export class CustomerManagementService {
       conversationId: data.conversation_id,
       senderId: data.sender_id,
       message: data.message,
-      attachments: data.attachments || [],
+      attachments: JSON.parse(data.attachments as string || '[]'),
       isInternal: data.is_internal,
       createdAt: new Date(data.created_at)
     };

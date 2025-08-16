@@ -1,12 +1,13 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database';
 
 // Environment variables for Supabase configuration
 // Use import.meta.env for Vite/browser, process.env for Node.js
 const getEnvVar = (name: string): string => {
   // For Vite (browser)
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    return import.meta.env[name] || '';
+  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
+    return (import.meta as any).env[name] || '';
   }
   // For Node.js
   if (typeof process !== 'undefined' && process.env) {
@@ -72,6 +73,9 @@ const createSupabaseClient = (): SupabaseClient<Database> => {
         'X-Client-Info': 'park-angel-system',
       },
     },
+    db: {
+      schema: 'public',
+    },
   });
 
   return supabaseInstance;
@@ -109,6 +113,49 @@ export const handleSupabaseError = (error: any) => {
   }
 
   throw new Error(error?.message || 'An unexpected error occurred');
+};
+
+// Helper function to validate database query results
+export const validateQueryResult = <T>(result: any): T | null => {
+  if (!result || typeof result !== 'object') {
+    return null;
+  }
+  
+  // Check if it's a SelectQueryError
+  if (result.message && result.message.includes('could not find the relation')) {
+    console.warn('Database relationship error:', result.message);
+    return null;
+  }
+  
+  return result as T;
+};
+
+// Helper function to safely access nested properties
+export const safeAccess = <T>(obj: any, path: string, defaultValue: T): T => {
+  try {
+    const keys = path.split('.');
+    let current = obj;
+    
+    for (const key of keys) {
+      if (current === null || current === undefined || typeof current !== 'object') {
+        return defaultValue;
+      }
+      current = current[key];
+    }
+    
+    return current !== undefined ? current : defaultValue;
+  } catch {
+    return defaultValue;
+  }
+};
+
+// Type guard for checking if a value is a valid database result
+export const isValidDatabaseResult = (value: any): value is Record<string, any> => {
+  return value !== null && 
+         value !== undefined && 
+         typeof value === 'object' && 
+         !Array.isArray(value) &&
+         !value.message?.includes('could not find the relation');
 };
 
 // Helper function to check if user is authenticated

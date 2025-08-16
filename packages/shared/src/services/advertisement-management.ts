@@ -39,14 +39,18 @@ export class AdvertisementManagementService {
       .from('advertisements')
       .insert({
         title: request.title,
-        description: request.description,
-        content_type: request.contentType,
-        content_url: request.contentUrl,
-        content_text: request.contentText,
-        target_location_id: request.targetLocationId,
+        content: {
+          type: request.contentType,
+          url: request.contentUrl,
+          text: request.contentText,
+          description: request.description
+        },
+        target_location: request.targetLocationId,
         target_type: request.targetType,
-        start_date: request.startDate.toISOString(),
-        end_date: request.endDate.toISOString(),
+        schedule: {
+          start_date: request.startDate.toISOString(),
+          end_date: request.endDate.toISOString()
+        },
         budget: request.budget,
         cost_per_impression: request.costPerImpression || 0,
         cost_per_click: request.costPerClick || 0,
@@ -91,7 +95,7 @@ export class AdvertisementManagementService {
     page = 1,
     limit = 20
   ): Promise<AdListResponse> {
-    let query = supabase
+    let query: any = supabase
       .from('advertisements')
       .select('*', { count: 'exact' });
 
@@ -257,24 +261,30 @@ export class AdvertisementManagementService {
     endDate: Date,
     excludeAdId?: string
   ): Promise<AdConflict[]> {
-    const { data, error } = await supabase
-      .rpc('check_advertisement_conflicts', {
-        p_target_location_id: targetLocationId,
-        p_target_type: targetType,
-        p_start_date: startDate.toISOString(),
-        p_end_date: endDate.toISOString(),
-        p_exclude_ad_id: excludeAdId || null
-      });
+    // Simple conflict check using direct query since RPC function is not available
+    let query = supabase
+      .from('advertisements')
+      .select('id, title')
+      .eq('target_location', targetLocationId)
+      .eq('target_type', targetType)
+      .eq('status', 'active')
+      .or(`schedule->>start_date.lte.${endDate.toISOString()},schedule->>end_date.gte.${startDate.toISOString()}`);
+
+    if (excludeAdId) {
+      query = query.neq('id', excludeAdId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw new Error(`Failed to check conflicts: ${error.message}`);
     }
 
-    return data?.map((item: any) => ({
+    return (data as any[])?.map((item: any) => ({
       ad1Id: excludeAdId || '',
       ad1Title: '',
-      ad2Id: item.conflicting_ad_id,
-      ad2Title: item.conflicting_ad_title,
+      ad2Id: item.id,
+      ad2Title: item.title,
       targetLocationId,
       targetType,
       conflictStart: new Date(item.conflict_start),
@@ -491,9 +501,9 @@ export class AdvertisementManagementService {
     return {
       id: data.id,
       advertisementId: data.advertisement_id,
-      amount: parseFloat(data.amount),
+      amount: typeof data.amount === 'number' ? data.amount : parseFloat(data.amount),
       paymentMethod: data.payment_method,
-      paymentStatus: data.payment_status,
+      paymentStatus: data.payment_status as 'pending' | 'completed' | 'failed' | 'refunded',
       paymentReference: data.payment_reference,
       paidAt: data.paid_at ? new Date(data.paid_at) : undefined,
       createdAt: new Date(data.created_at),

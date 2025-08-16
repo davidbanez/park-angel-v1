@@ -3,7 +3,7 @@ import {
   AuthorizationService,
   ResourcePermission,
 } from '../services/authorization';
-import { PermissionAction, UserType } from '../models/user';
+import { PermissionAction, UserType, USER_TYPE } from '../types/common';
 import { useAuth } from './useAuth';
 
 export interface PermissionState {
@@ -270,11 +270,11 @@ export function useRole(): {
 
   return {
     userType,
-    isAdmin: userType === UserType.ADMIN,
-    isOperator: userType === UserType.OPERATOR,
-    isPOS: userType === UserType.POS,
-    isHost: userType === UserType.HOST,
-    isClient: userType === UserType.CLIENT,
+    isAdmin: userType === USER_TYPE.ADMIN,
+    isOperator: userType === USER_TYPE.OPERATOR,
+    isPOS: userType === USER_TYPE.POS,
+    isHost: userType === USER_TYPE.HOST,
+    isClient: userType === USER_TYPE.CLIENT,
     hasRole,
   };
 }

@@ -145,7 +145,7 @@ export class AutomatedRemittanceServiceImpl implements AutomatedRemittanceServic
           entityId: scheduleId,
           entityType: 'remittance_schedule',
           action: 'delete',
-          userId: scheduleData.recipient_id,
+          userId: scheduleData.recipient_id as string,
           details: {},
         });
       }
@@ -233,13 +233,13 @@ export class AutomatedRemittanceServiceImpl implements AutomatedRemittanceServic
       let earnings;
       if (schedule.recipientType === 'operator') {
         earnings = await this.revenueShareService.getOperatorEarnings(
-          schedule.recipientId,
+          schedule.recipientId as string,
           startDate,
           endDate
         );
       } else {
         earnings = await this.revenueShareService.getHostEarnings(
-          schedule.recipientId,
+          schedule.recipientId as string,
           startDate,
           endDate
         );
@@ -282,7 +282,7 @@ export class AutomatedRemittanceServiceImpl implements AutomatedRemittanceServic
         throw new Error(`Failed to fetch revenue shares: ${revenueError.message}`);
       }
 
-      run.transactionIds = (revenueShares || []).map(rs => rs.transaction_id);
+      run.transactionIds = (revenueShares || []).map(rs => rs.transaction_id as string);
 
       // Store initial run record
       await this.storeRemittanceRun(run);

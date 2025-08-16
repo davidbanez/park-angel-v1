@@ -134,13 +134,13 @@ export class PayoutServiceImpl implements PayoutService {
       try {
         // Process the payout
         const processedPayout = await processor.createPayout({
-          recipientId: payoutData.recipient_id,
-          recipientType: payoutData.recipient_type,
-          amount: payoutData.amount,
-          currency: payoutData.currency,
-          bankAccountId: payoutData.bank_account_id,
-          transactionIds: payoutData.transaction_ids,
-          metadata: payoutData.metadata,
+          recipientId: (payoutData as any).recipient_id as string,
+          recipientType: (payoutData as any).recipient_type as 'operator' | 'host',
+          amount: (payoutData as any).amount as number,
+          currency: (payoutData as any).currency as string,
+          bankAccountId: (payoutData as any).bank_account_id as string,
+          transactionIds: (payoutData as any).transaction_ids as string[],
+          metadata: (payoutData as any).metadata,
         });
 
         // Update payout status to paid
@@ -150,7 +150,7 @@ export class PayoutServiceImpl implements PayoutService {
             status: PayoutStatus.PAID,
             processed_at: new Date(),
             metadata: {
-              ...payoutData.metadata,
+              ...(payoutData as any).metadata,
               transferReference: processedPayout.metadata.transferReference,
             },
           })
@@ -171,7 +171,7 @@ export class PayoutServiceImpl implements PayoutService {
             status: PayoutStatus.FAILED,
             failed_at: new Date(),
             metadata: {
-              ...payoutData.metadata,
+              ...(payoutData as any).metadata,
               errorMessage: processingError instanceof Error ? processingError.message : 'Unknown error',
             },
           })
@@ -296,12 +296,12 @@ export class PayoutServiceImpl implements PayoutService {
 
       // Process operator payouts
       for (const operator of operators || []) {
-        await this.processAutomaticPayout(operator.id, 'operator');
+        await this.processAutomaticPayout((operator as any).id as string, 'operator');
       }
 
       // Process host payouts
       for (const host of hosts || []) {
-        await this.processAutomaticPayout(host.id, 'host');
+        await this.processAutomaticPayout((host as any).id as string, 'host');
       }
     } catch (error) {
       console.error('Error scheduling automatic payouts:', error);
@@ -364,8 +364,8 @@ export class PayoutServiceImpl implements PayoutService {
         recipientType,
         amount: shareAmount,
         currency: 'PHP',
-        bankAccountId: bankAccount.id,
-        transactionIds,
+        bankAccountId: (bankAccount as any).id as string,
+        transactionIds: transactionIds as string[],
         metadata: {
           automatic: true,
           period: {
@@ -579,7 +579,7 @@ class StripeTransferProcessor extends BasePayoutProcessor {
       transactionIds: params.transactionIds,
       metadata: {
         ...params.metadata,
-        stripeTransferId: `tr_${Date.now()}`,
+        transferReference: `tr_${Date.now()}`,
       },
       createdAt: new Date(),
       processedAt: new Date(),
@@ -617,7 +617,7 @@ class PayPalTransferProcessor extends BasePayoutProcessor {
       transactionIds: params.transactionIds,
       metadata: {
         ...params.metadata,
-        paypalBatchId: `batch_${Date.now()}`,
+        transferReference: `batch_${Date.now()}`,
       },
       createdAt: new Date(),
       processedAt: new Date(),

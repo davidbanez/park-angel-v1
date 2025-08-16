@@ -5,9 +5,9 @@ import { Money } from '../models/value-objects';
 import { 
   DynamicPricingService, 
   PriceCalculationRequest, 
-  PriceCalculationResult, 
-  HierarchyLevel 
+  PriceCalculationResult 
 } from './parking-management';
+import { HierarchyLevel } from './hierarchical-pricing';
 
 export class DynamicPricingServiceImpl implements DynamicPricingService {
   constructor(private supabase: ReturnType<typeof createClient>) {}
@@ -99,7 +99,7 @@ export class DynamicPricingServiceImpl implements DynamicPricingService {
       throw new Error(`Failed to get pricing: ${error.message}`);
     }
 
-    return data.pricing_config ? PricingConfig.create(data.pricing_config) : null;
+    return data.pricing_config ? PricingConfig.create(data.pricing_config as CreatePricingConfigData) : null;
   }
 
   async getEffectivePricing(spotId: string): Promise<PricingConfig> {
@@ -112,9 +112,7 @@ export class DynamicPricingServiceImpl implements DynamicPricingService {
           pricing_config,
           sections!inner (
             pricing_config,
-            locations!inner (
-              pricing_config
-            )
+            locations!inner (*)
           )
         )
       `)
@@ -125,7 +123,7 @@ export class DynamicPricingServiceImpl implements DynamicPricingService {
 
     // Resolve hierarchical pricing (spot > zone > section > location)
     const locationPricing = data.zones.sections.locations.pricing_config 
-      ? PricingConfig.create(data.zones.sections.locations.pricing_config) 
+      ? PricingConfig.create(data.zones.sections.locations.pricing_config as CreatePricingConfigData) 
       : undefined;
     
     const sectionPricing = data.zones.sections.pricing_config 
@@ -137,7 +135,7 @@ export class DynamicPricingServiceImpl implements DynamicPricingService {
       : undefined;
     
     const spotPricing = data.pricing_config 
-      ? PricingConfig.create(data.pricing_config) 
+      ? PricingConfig.create(data.pricing_config as CreatePricingConfigData) 
       : undefined;
 
     return HierarchicalPricingResolver.resolvePricing(
@@ -153,11 +151,9 @@ export class DynamicPricingServiceImpl implements DynamicPricingService {
     const { data: spotData, error: spotError } = await this.supabase
       .from('parking_spots')
       .select(`
-        zones!inner (
-          sections!inner (
-            locations!inner (
-              id
-            )
+        zones!inner(
+          sections!inner(
+            locations!inner(id)
           )
         )
       `)
@@ -204,7 +200,7 @@ export class DynamicPricingServiceImpl implements DynamicPricingService {
     if (error || !userProfile) return [];
 
     const discounts: any[] = [];
-    const eligibility = userProfile.discount_eligibility || [];
+    const eligibility = (userProfile.discount_eligibility || []) as string[];
 
     // Senior Citizen discount (20% with VAT exemption)
     if (eligibility.includes('senior')) {
@@ -217,7 +213,7 @@ export class DynamicPricingServiceImpl implements DynamicPricingService {
     }
 
     // PWD discount (20% with VAT exemption)
-    if (eligibility.includes('pwd')) {
+    if ((eligibility as string[]).includes('pwd')) {
       discounts.push({
         type: 'pwd',
         name: 'Person with Disability Discount',
@@ -416,7 +412,7 @@ export class PricingAnalytics {
     if (error) throw new Error(`Failed to get booking data: ${error.message}`);
 
     // Calculate metrics
-    const totalRevenue = bookings.reduce((sum, booking) => sum + parseFloat(booking.total_amount), 0);
+    const totalRevenue = bookings.reduce((sum, booking) => sum + parseFloat(booking.total_amount as string), 0);
     const averageBookingValue = totalRevenue / bookings.length;
     const occupancyRate = await this.calculateAverageOccupancy(locationId, dateRange);
     

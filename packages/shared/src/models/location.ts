@@ -1,15 +1,8 @@
 import { UserId, Coordinates, Address } from './value-objects';
 import { PricingConfig } from './pricing';
-import { VehicleType } from '../types';
+import { VehicleType, ParkingType, SpotStatus, SPOT_STATUS } from '../types/common';
 
-// Vehicle type enum for runtime comparisons
-export enum VehicleTypeEnum {
-  CAR = 'car',
-  MOTORCYCLE = 'motorcycle',
-  TRUCK = 'truck',
-  VAN = 'van',
-  SUV = 'suv',
-}
+// Vehicle type enum - now using VehicleType from common types
 
 export class Location {
   constructor(
@@ -301,7 +294,7 @@ export class ParkingSpot {
       data.zoneId!,
       data.number,
       data.type,
-      SpotStatus.AVAILABLE,
+      SPOT_STATUS.AVAILABLE,
       new Coordinates(data.coordinates.latitude, data.coordinates.longitude),
       data.amenities || [],
       data.pricing,
@@ -311,8 +304,8 @@ export class ParkingSpot {
   }
 
   reserve(): void {
-    if (this.status === SpotStatus.AVAILABLE) {
-      this.status = SpotStatus.RESERVED;
+    if (this.status === SPOT_STATUS.AVAILABLE) {
+      this.status = SPOT_STATUS.RESERVED;
       this.updatedAt = new Date();
     } else {
       throw new Error('Cannot reserve spot that is not available');
@@ -321,10 +314,10 @@ export class ParkingSpot {
 
   occupy(): void {
     if (
-      this.status === SpotStatus.AVAILABLE ||
-      this.status === SpotStatus.RESERVED
+      this.status === SPOT_STATUS.AVAILABLE ||
+      this.status === SPOT_STATUS.RESERVED
     ) {
-      this.status = SpotStatus.OCCUPIED;
+      this.status = SPOT_STATUS.OCCUPIED;
       this.updatedAt = new Date();
     } else {
       throw new Error('Cannot occupy spot that is not available or reserved');
@@ -332,47 +325,47 @@ export class ParkingSpot {
   }
 
   makeAvailable(): void {
-    if (this.status !== SpotStatus.MAINTENANCE) {
-      this.status = SpotStatus.AVAILABLE;
+    if (this.status !== SPOT_STATUS.MAINTENANCE) {
+      this.status = SPOT_STATUS.AVAILABLE;
       this.updatedAt = new Date();
     }
   }
 
   setMaintenance(): void {
-    this.status = SpotStatus.MAINTENANCE;
+    this.status = SPOT_STATUS.MAINTENANCE;
     this.updatedAt = new Date();
   }
 
   isAvailable(): boolean {
-    return this.status === SpotStatus.AVAILABLE;
+    return this.status === SPOT_STATUS.AVAILABLE;
   }
 
   isOccupied(): boolean {
-    return this.status === SpotStatus.OCCUPIED;
+    return this.status === SPOT_STATUS.OCCUPIED;
   }
 
   isReserved(): boolean {
-    return this.status === SpotStatus.RESERVED;
+    return this.status === SPOT_STATUS.RESERVED;
   }
 
   isInMaintenance(): boolean {
-    return this.status === SpotStatus.MAINTENANCE;
+    return this.status === SPOT_STATUS.MAINTENANCE;
   }
 
   canAccommodateVehicle(vehicleType: VehicleType): boolean {
     // Basic logic - can be extended based on business rules
-    if (this.type === VehicleTypeEnum.MOTORCYCLE) {
-      return vehicleType === VehicleTypeEnum.MOTORCYCLE;
+    if (this.type === 'motorcycle') {
+      return vehicleType === 'motorcycle';
     }
 
-    if (this.type === VehicleTypeEnum.CAR) {
+    if (this.type === 'car') {
       return (
-        vehicleType === VehicleTypeEnum.CAR ||
-        vehicleType === VehicleTypeEnum.MOTORCYCLE
+        vehicleType === 'car' ||
+        vehicleType === 'motorcycle'
       );
     }
 
-    if (this.type === VehicleTypeEnum.TRUCK) {
+    if (this.type === 'truck') {
       return true; // Truck spots can accommodate all vehicle types
     }
 
@@ -522,19 +515,7 @@ export class OperatingHours {
   }
 }
 
-// Enums
-export enum ParkingType {
-  HOSTED = 'hosted',
-  STREET = 'street',
-  FACILITY = 'facility',
-}
-
-export enum SpotStatus {
-  AVAILABLE = 'available',
-  OCCUPIED = 'occupied',
-  RESERVED = 'reserved',
-  MAINTENANCE = 'maintenance',
-}
+// Enums - now imported from common types for consistency
 
 // Data Transfer Objects
 export interface CreateLocationData {

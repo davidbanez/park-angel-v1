@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { UserType, PermissionAction } from '../models/user';
+import { UserType, PermissionAction, USER_TYPE } from '../types/common';
 
 export interface AuthorizationContext {
   userId: string;
@@ -31,14 +31,14 @@ export interface PermissionCondition {
 export class AuthorizationService {
   // Default permissions for each user type
   private static readonly DEFAULT_PERMISSIONS: Record<
-    UserType,
+    string,
     ResourcePermission[]
   > = {
-    [UserType.ADMIN]: [
+    [USER_TYPE.ADMIN]: [
       // Admins have full access to everything
       { resource: '*', actions: ['create', 'read', 'update', 'delete'] },
     ],
-    [UserType.OPERATOR]: [
+    [USER_TYPE.OPERATOR]: [
       // Operators can manage their own locations and related resources
       {
         resource: 'locations',
@@ -101,7 +101,7 @@ export class AuthorizationService {
       { resource: 'reports', actions: ['read'] },
       { resource: 'analytics', actions: ['read'] },
     ],
-    [UserType.POS]: [
+    [USER_TYPE.POS]: [
       // POS users can manage bookings and spots for their operator's locations
       {
         resource: 'bookings',
@@ -139,7 +139,7 @@ export class AuthorizationService {
       { resource: 'vehicles', actions: ['read'] },
       { resource: 'users', actions: ['read'] },
     ],
-    [UserType.HOST]: [
+    [USER_TYPE.HOST]: [
       // Hosts can manage their own listings and bookings
       {
         resource: 'hosted_listings',
@@ -179,7 +179,7 @@ export class AuthorizationService {
       },
       { resource: 'host_payouts', actions: ['read'] },
     ],
-    [UserType.CLIENT]: [
+    [USER_TYPE.CLIENT]: [
       // Clients can manage their own bookings, vehicles, and profile
       {
         resource: 'bookings',
@@ -242,7 +242,7 @@ export class AuthorizationService {
   ): Promise<boolean> {
     try {
       // Admin users have all permissions
-      if (context.userType === UserType.ADMIN) {
+      if (context.userType === USER_TYPE.ADMIN) {
         return true;
       }
 
@@ -485,7 +485,7 @@ export class AuthorizationService {
       console.error('Error creating authorization context:', error);
       return {
         userId,
-        userType: UserType.CLIENT,
+        userType: USER_TYPE.CLIENT,
       };
     }
   }
@@ -568,7 +568,7 @@ export class AuthorizationService {
     action: PermissionAction
   ): string {
     // Admin users can access everything
-    if (userType === UserType.ADMIN) {
+    if (userType === USER_TYPE.ADMIN) {
       return 'true';
     }
 

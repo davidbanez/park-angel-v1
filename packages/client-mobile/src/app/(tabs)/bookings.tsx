@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, RefreshControl, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Booking } from '@park-angel/shared/src/types/booking';
+import type { ParkingSpot } from '@park-angel/shared/src/types/parking';
 import { BookingService } from '../../services/bookingService';
 import { BookingManagement } from '../../components/booking/BookingManagement';
+import { NavigationController } from '../../components/navigation/NavigationController';
 import { useParkingStore } from '../../stores/parkingStore';
 
 export default function BookingsScreen() {
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  const { activeBooking: storeActiveBooking } = useParkingStore();
+  const [showNavigation, setShowNavigation] = useState(false);
+  const [navigationDestination, setNavigationDestination] = useState<ParkingSpot | null>(null);
 
   useEffect(() => {
     loadBookings();
   }, []);
 
   const loadBookings = async () => {
-    setLoading(true);
     try {
       // Load active booking
       const active = await BookingService.getActiveBooking();
@@ -33,8 +33,6 @@ export default function BookingsScreen() {
       setRecentBookings(recentFiltered);
     } catch (error) {
       console.error('Error loading bookings:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -51,6 +49,32 @@ export default function BookingsScreen() {
   const handleBookingCancelled = () => {
     setActiveBooking(null);
     loadBookings(); // Refresh to update recent bookings
+  };
+
+  const handleNavigateToSpot = async (spotId: string) => {
+    try {
+      // Get parking spot details
+      const spot = await BookingService.getParkingSpot(spotId);
+      if (spot) {
+        setNavigationDestination(spot);
+        setShowNavigation(true);
+      } else {
+        Alert.alert('Error', 'Unable to find parking spot details for navigation.');
+      }
+    } catch (error) {
+      console.error('Error getting spot details for navigation:', error);
+      Alert.alert('Error', 'Failed to start navigation. Please try again.');
+    }
+  };
+
+  const handleNavigationComplete = () => {
+    setShowNavigation(false);
+    setNavigationDestination(null);
+  };
+
+  const handleNavigationCancel = () => {
+    setShowNavigation(false);
+    setNavigationDestination(null);
   };
 
   const formatBookingDate = (dateString: string) => {
@@ -108,13 +132,14 @@ export default function BookingsScreen() {
                 booking={activeBooking}
                 onBookingUpdated={handleBookingUpdated}
                 onBookingCancelled={handleBookingCancelled}
+                onNavigateToSpot={handleNavigateToSpot}
               />
             ) : (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyStateIcon}>🅿️</Text>
                 <Text style={styles.emptyStateTitle}>No Active Booking</Text>
                 <Text style={styles.emptyStateText}>
-                  You don't have any active parking sessions. Find a parking spot on the map to get started.
+                  You don&apos;t have any active parking sessions. Find a parking spot on the map to get started.
                 </Text>
               </View>
             )}
@@ -172,6 +197,21 @@ export default function BookingsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Navigation Modal */}
+      {showNavigation && navigationDestination && (
+        <Modal
+          visible={showNavigation}
+          animationType="slide"
+          presentationStyle="fullScreen"
+        >
+          <NavigationController
+            destination={navigationDestination}
+            onNavigationComplete={handleNavigationComplete}
+            onCancel={handleNavigationCancel}
+          />
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }

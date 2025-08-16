@@ -1,4 +1,5 @@
 import { UserId } from './value-objects';
+import { RatedType, RatingStatus, ReputationLevel, RATING_STATUS, REPUTATION_LEVEL } from '../types/common';
 
 export class Rating {
   constructor(
@@ -11,7 +12,7 @@ export class Rating {
     public review?: string,
     public photos: string[] = [],
     public isVerified: boolean = false,
-    public status: RatingStatus = RatingStatus.ACTIVE,
+    public status: RatingStatus = RATING_STATUS.ACTIVE,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date(),
     public verifiedAt?: Date,
@@ -30,7 +31,7 @@ export class Rating {
       data.review,
       data.photos || [],
       false,
-      RatingStatus.ACTIVE,
+      RATING_STATUS.ACTIVE,
       new Date(),
       new Date()
     );
@@ -86,21 +87,21 @@ export class Rating {
   }
 
   hide(reason?: string): void {
-    this.status = RatingStatus.HIDDEN;
+    this.status = RATING_STATUS.HIDDEN;
     this.moderatedAt = new Date();
     this.moderationReason = reason;
     this.updatedAt = new Date();
   }
 
   flag(reason?: string): void {
-    this.status = RatingStatus.FLAGGED;
+    this.status = RATING_STATUS.FLAGGED;
     this.moderatedAt = new Date();
     this.moderationReason = reason;
     this.updatedAt = new Date();
   }
 
   restore(): void {
-    this.status = RatingStatus.ACTIVE;
+    this.status = RATING_STATUS.ACTIVE;
     this.moderatedAt = undefined;
     this.moderationReason = undefined;
     this.updatedAt = new Date();
@@ -119,15 +120,15 @@ export class Rating {
   }
 
   isActive(): boolean {
-    return this.status === RatingStatus.ACTIVE;
+    return this.status === RATING_STATUS.ACTIVE;
   }
 
   isHidden(): boolean {
-    return this.status === RatingStatus.HIDDEN;
+    return this.status === RATING_STATUS.HIDDEN;
   }
 
   isFlagged(): boolean {
-    return this.status === RatingStatus.FLAGGED;
+    return this.status === RATING_STATUS.FLAGGED;
   }
 
   hasReview(): boolean {
@@ -258,12 +259,12 @@ export class RatingAggregate {
   }
 
   getReputationLevel(): ReputationLevel {
-    if (this.totalRatings < 5) return ReputationLevel.NEW;
-    if (this.averageScore >= 4.5) return ReputationLevel.EXCELLENT;
-    if (this.averageScore >= 4.0) return ReputationLevel.VERY_GOOD;
-    if (this.averageScore >= 3.5) return ReputationLevel.GOOD;
-    if (this.averageScore >= 3.0) return ReputationLevel.AVERAGE;
-    return ReputationLevel.POOR;
+    if (this.totalRatings < 5) return REPUTATION_LEVEL.NEW;
+    if (this.averageScore >= 4.5) return REPUTATION_LEVEL.EXCELLENT;
+    if (this.averageScore >= 4.0) return REPUTATION_LEVEL.VERY_GOOD;
+    if (this.averageScore >= 3.5) return REPUTATION_LEVEL.GOOD;
+    if (this.averageScore >= 3.0) return REPUTATION_LEVEL.AVERAGE;
+    return REPUTATION_LEVEL.POOR;
   }
 
   toJSON() {
@@ -478,28 +479,7 @@ export class RatingFilter {
   }
 }
 
-// Enums
-export enum RatedType {
-  SPOT = 'spot',
-  HOST = 'host',
-  OPERATOR = 'operator',
-  USER = 'user',
-}
-
-export enum RatingStatus {
-  ACTIVE = 'active',
-  HIDDEN = 'hidden',
-  FLAGGED = 'flagged',
-}
-
-export enum ReputationLevel {
-  NEW = 'new',
-  POOR = 'poor',
-  AVERAGE = 'average',
-  GOOD = 'good',
-  VERY_GOOD = 'very_good',
-  EXCELLENT = 'excellent',
-}
+// Enums - now imported from common types for consistency
 
 // Data Transfer Objects
 export interface CreateRatingData {

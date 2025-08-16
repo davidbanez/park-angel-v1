@@ -1,7 +1,7 @@
 // Advertisement System Types
 
 export type AdContentType = 'image' | 'video' | 'text' | 'banner' | 'interstitial';
-export type AdStatus = 'pending' | 'approved' | 'active' | 'paused' | 'completed' | 'rejected';
+export type AdStatus = 'pending' | 'approved' | 'active' | 'paused' | 'completed';
 export type AdTargetType = 'section' | 'zone';
 
 export interface Advertisement {

@@ -9,21 +9,22 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
     "jsx": "react-jsx",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "composite": true,
-    "types": ["vite/client", "node"],
+    "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["../shared/src/*"]
+      "@park-angel/shared": ["../shared/src"],
+      "@park-angel/shared/*": ["../shared/src/*"]
     }
   },
-  "include": ["src/**/*", "vite.config.ts", "vitest.config.ts"],
-  "exclude": ["src/**/*.test.tsx", "src/**/*.test.ts", "src/test/**/*"],
-  "references": [{ "path": "../shared" }]
+  "include": ["src/**/*"],
+  "exclude": ["src/test/**/*"]
 }

@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
-import { Location, Section, Zone, ParkingSpot, ParkingType, SpotStatus } from '../models/location';
+import { Location, Section, Zone, ParkingSpot } from '../models/location';
+import { ParkingType, SpotStatus } from '../types/common';
 import { PricingConfig, HierarchicalPricingResolver } from '../models/pricing';
-import { Booking, BookingStatus, PaymentStatus } from '../models/booking';
+import { HierarchyLevel } from './hierarchical-pricing';
+import { Booking } from '../models/booking';
+import { BookingStatus, PaymentStatus } from '../types/common';
 import { UserId, Coordinates, Address } from '../models/value-objects';
 import { VehicleType } from '../types';
 
@@ -654,12 +657,20 @@ export interface DateRange {
   end: Date;
 }
 
-export type HierarchyLevel = 'location' | 'section' | 'zone' | 'spot';
+
 
 export interface ParkingTypeLogic {
-  validateBooking(booking: any): Promise<boolean>;
+  validateBooking(booking: any): Promise<ValidationResult>;
   calculatePrice(basePrice: number, params: any): Promise<number>;
   getAccessInstructions(spotId: string): Promise<string>;
+}
+
+// Extended interface for hosted parking specific methods
+export interface HostedParkingLogicInterface extends ParkingTypeLogic {
+  checkHostAvailability(availability: any, startTime: Date, endTime: Date): boolean;
+  validateGuestRequirements(userId: string, requirements: any): Promise<ValidationResult>;
+  getTimeBasedRate(rates: any[], startTime: Date): any;
+  getSeasonalRate(rates: any[], startTime: Date): any;
 }
 
 export interface ValidationResult {

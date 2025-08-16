@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabase } from '../lib/supabase';
 import type {
   DeveloperAccount,
   APIApplication,
@@ -35,7 +35,10 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return account;
+    return {
+      ...account,
+      status: account.status as 'pending' | 'approved' | 'suspended' | 'rejected'
+    };
   }
 
   async getDeveloperAccounts(filter: DeveloperAccountFilter = {}): Promise<DeveloperAccount[]> {
@@ -62,7 +65,10 @@ export class APIManagementService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+    return (data || []).map(account => ({
+      ...account,
+      status: account.status as 'pending' | 'approved' | 'suspended' | 'rejected'
+    }));
   }
 
   async getDeveloperAccount(id: string): Promise<DeveloperAccount | null> {
@@ -73,7 +79,10 @@ export class APIManagementService {
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    return data ? {
+      ...data,
+      status: data.status as 'pending' | 'approved' | 'suspended' | 'rejected'
+    } : null;
   }
 
   async updateDeveloperAccountStatus(
@@ -99,7 +108,10 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      status: data.status as 'pending' | 'approved' | 'suspended' | 'rejected'
+    };
   }
 
   // API Application Management
@@ -120,7 +132,7 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return application;
+    return application as APIApplication;
   }
 
   async getAPIApplications(filter: APIApplicationFilter = {}): Promise<APIApplication[]> {
@@ -158,7 +170,7 @@ export class APIManagementService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+    return (data || []) as APIApplication[];
   }
 
   async getAPIApplication(id: string): Promise<APIApplication | null> {
@@ -172,7 +184,15 @@ export class APIManagementService {
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    return data;
+    return data ? {
+      ...data,
+      app_type: data.app_type as 'web' | 'mobile' | 'server' | 'other',
+      status: data.status as 'pending' | 'approved' | 'suspended' | 'rejected',
+      developer_account: {
+        ...data.developer_account,
+        status: data.developer_account.status as 'pending' | 'approved' | 'suspended' | 'rejected'
+      }
+    } as APIApplication : null;
   }
 
   async updateAPIApplicationStatus(
@@ -201,7 +221,15 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      app_type: data.app_type as 'web' | 'mobile' | 'server' | 'other',
+      status: data.status as 'pending' | 'approved' | 'suspended' | 'rejected',
+      developer_account: {
+        ...data.developer_account,
+        status: data.developer_account.status as 'pending' | 'approved' | 'suspended' | 'rejected'
+      }
+    } as APIApplication;
   }
 
   // API Key Management
@@ -213,13 +241,13 @@ export class APIManagementService {
     const { data: key, error } = await supabase
       .from('api_keys')
       .insert({
-        ...data,
         application_id: applicationId,
-        api_key: apiKey,
-        api_secret: apiSecret,
-        rate_limit_per_minute: data.rate_limit_per_minute || 100,
-        rate_limit_per_hour: data.rate_limit_per_hour || 1000,
-        rate_limit_per_day: data.rate_limit_per_day || 10000
+        name: data.key_name,
+        key_hash: apiKey,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        permissions: data.permissions || {},
+        rate_limit: data.rate_limit_per_minute || 1000,
+        is_active: true
       })
       .select(`
         *,
@@ -228,11 +256,11 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return key;
+    return this.transformApiKeyData(key);
   }
 
   async getAPIKeys(applicationId?: string): Promise<APIKey[]> {
-    let query = supabase
+    let query: any = supabase
       .from('api_keys')
       .select(`
         *,
@@ -246,7 +274,7 @@ export class APIManagementService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+    return (data || []).map(key => this.transformApiKeyData(key));
   }
 
   async getAPIKey(id: string): Promise<APIKey | null> {
@@ -278,7 +306,7 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return key;
+    return this.transformApiKeyData(key);
   }
 
   async deleteAPIKey(id: string): Promise<void> {
@@ -309,7 +337,7 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return data;
+    return this.transformApiKeyData(data);
   }
 
   // Usage Tracking
@@ -357,7 +385,7 @@ export class APIManagementService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+    return (data || []).map(log => ({...log, ip_address: String(log.ip_address)})) as APIUsageLog[];
   }
 
   async getAPIUsageAnalytics(
@@ -550,7 +578,7 @@ export class APIManagementService {
       .order('monthly_fee', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(plan => ({...plan, plan_type: plan.plan_type as 'free' | 'per_call' | 'subscription' | 'revenue_share'})) as APIPricingPlan[];
   }
 
   async createPricingPlan(plan: Omit<APIPricingPlan, 'id' | 'created_at' | 'updated_at'>): Promise<APIPricingPlan> {
@@ -561,7 +589,7 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return data;
+    return {...data, plan_type: data.plan_type as 'free' | 'per_call' | 'subscription' | 'revenue_share'} as APIPricingPlan;
   }
 
   async updatePricingPlan(id: string, updates: Partial<APIPricingPlan>): Promise<APIPricingPlan> {
@@ -576,7 +604,7 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return data;
+    return {...data, plan_type: data.plan_type as 'free' | 'per_call' | 'subscription' | 'revenue_share'} as APIPricingPlan;
   }
 
   // Subscriptions
@@ -597,7 +625,7 @@ export class APIManagementService {
       .single();
 
     if (error) throw error;
-    return data;
+    return {...data, status: data.status as 'active' | 'cancelled' | 'suspended' | 'expired'} as APISubscription;
   }
 
   async getSubscriptions(applicationId?: string): Promise<APISubscription[]> {
@@ -616,7 +644,7 @@ export class APIManagementService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+    return (data || []).map(sub => ({...sub, status: sub.status as 'active' | 'cancelled' | 'suspended' | 'expired'})) as APISubscription[];
   }
 
   // Documentation
@@ -670,7 +698,7 @@ export class APIManagementService {
     const totalDevelopers = developersResult.count || 0;
     const activeApplications = applicationsResult.count || 0;
     const totalApiCalls = usageResult.count || 0;
-    const totalRevenue = revenueResult.data?.reduce((sum, record) => sum + record.total_amount, 0) || 0;
+    const totalRevenue = revenueResult.data?.reduce((sum, record) => sum + (record.total_amount as number), 0) || 0;
 
     // Calculate growth metrics (simplified - would need historical data for real growth)
     return {
@@ -688,6 +716,26 @@ export class APIManagementService {
   }
 
   // Utility methods
+  private transformApiKeyData(data: any): APIKey {
+    return {
+      id: data.id as string,
+      application_id: data.application_id as string || data.user_id || '',
+      key_name: data.name as string || data.key_name || '',
+      api_key: data.key_hash as string || data.api_key || '',
+      api_secret: data.api_secret as string || '',
+      environment: 'development' as const,
+      permissions: (data.permissions as Record<string, any>) || {},
+      rate_limit_per_minute: (data.rate_limit as number) || 100,
+      rate_limit_per_hour: (data.rate_limit as number) * 60 || 6000,
+      rate_limit_per_day: (data.rate_limit as number) * 1440 || 144000,
+      is_active: data.is_active as boolean,
+      last_used_at: data.last_used_at as string,
+      created_at: data.created_at as string,
+      updated_at: data.updated_at as string,
+      application: data.application
+    };
+  }
+
   private generateAPIKey(): string {
     const prefix = 'pk_';
     const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(32)))

@@ -1,6 +1,6 @@
 import { UserId, Money, TimeRange } from './value-objects';
 import { AppliedDiscount } from './discount';
-import { VehicleType } from '../types';
+import { VehicleType, BookingStatus, PaymentStatus, BOOKING_STATUS, PAYMENT_STATUS } from '../types/common';
 
 export class Booking {
   constructor(
@@ -36,8 +36,8 @@ export class Booking {
       data.spotId,
       data.vehicleId,
       timeRange,
-      BookingStatus.PENDING,
-      PaymentStatus.PENDING,
+      BOOKING_STATUS.PENDING,
+      PAYMENT_STATUS.PENDING,
       amount,
       data.discounts || [],
       vatAmount,
@@ -48,81 +48,81 @@ export class Booking {
   }
 
   confirm(): void {
-    if (this.status !== BookingStatus.PENDING) {
+    if (this.status !== BOOKING_STATUS.PENDING) {
       throw new Error('Only pending bookings can be confirmed');
     }
 
-    this.status = BookingStatus.CONFIRMED;
+    this.status = BOOKING_STATUS.CONFIRMED;
     this.confirmedAt = new Date();
     this.updatedAt = new Date();
   }
 
   start(): void {
-    if (this.status !== BookingStatus.CONFIRMED) {
+    if (this.status !== BOOKING_STATUS.CONFIRMED) {
       throw new Error('Only confirmed bookings can be started');
     }
 
-    this.status = BookingStatus.ACTIVE;
+    this.status = BOOKING_STATUS.ACTIVE;
     this.startedAt = new Date();
     this.updatedAt = new Date();
   }
 
   complete(): void {
-    if (this.status !== BookingStatus.ACTIVE) {
+    if (this.status !== BOOKING_STATUS.ACTIVE) {
       throw new Error('Only active bookings can be completed');
     }
 
-    this.status = BookingStatus.COMPLETED;
+    this.status = BOOKING_STATUS.COMPLETED;
     this.completedAt = new Date();
     this.updatedAt = new Date();
   }
 
   cancel(reason?: string): void {
     if (
-      this.status === BookingStatus.COMPLETED ||
-      this.status === BookingStatus.CANCELLED
+      this.status === BOOKING_STATUS.COMPLETED ||
+      this.status === BOOKING_STATUS.CANCELLED
     ) {
       throw new Error('Cannot cancel completed or already cancelled bookings');
     }
 
-    this.status = BookingStatus.CANCELLED;
+    this.status = BOOKING_STATUS.CANCELLED;
     this.cancelledAt = new Date();
     this.cancellationReason = reason;
     this.updatedAt = new Date();
   }
 
   markPaymentPaid(): void {
-    if (this.paymentStatus === PaymentStatus.PAID) {
+    if (this.paymentStatus === PAYMENT_STATUS.PAID) {
       throw new Error('Payment is already marked as paid');
     }
 
-    this.paymentStatus = PaymentStatus.PAID;
+    this.paymentStatus = PAYMENT_STATUS.PAID;
     this.updatedAt = new Date();
 
     // Auto-confirm booking when payment is received
-    if (this.status === BookingStatus.PENDING) {
+    if (this.status === BOOKING_STATUS.PENDING) {
       this.confirm();
     }
   }
 
   markPaymentRefunded(): void {
-    if (this.paymentStatus !== PaymentStatus.PAID) {
+    if (this.paymentStatus !== PAYMENT_STATUS.PAID) {
       throw new Error('Can only refund paid payments');
     }
 
-    this.paymentStatus = PaymentStatus.REFUNDED;
+    this.paymentStatus = PAYMENT_STATUS.REFUNDED;
     this.updatedAt = new Date();
 
     // Auto-cancel booking when payment is refunded
-    if (this.status !== BookingStatus.CANCELLED) {
+    if (this.status !== BOOKING_STATUS.CANCELLED) {
       this.cancel('Payment refunded');
     }
   }
 
   extendTime(newEndTime: Date): void {
     if (
-      this.status !== BookingStatus.ACTIVE &&
-      this.status !== BookingStatus.CONFIRMED
+      this.status !== BOOKING_STATUS.ACTIVE &&
+      this.status !== BOOKING_STATUS.CONFIRMED
     ) {
       throw new Error('Can only extend active or confirmed bookings');
     }
@@ -189,31 +189,31 @@ export class Booking {
   }
 
   isActive(): boolean {
-    return this.status === BookingStatus.ACTIVE;
+    return this.status === BOOKING_STATUS.ACTIVE;
   }
 
   isPending(): boolean {
-    return this.status === BookingStatus.PENDING;
+    return this.status === BOOKING_STATUS.PENDING;
   }
 
   isConfirmed(): boolean {
-    return this.status === BookingStatus.CONFIRMED;
+    return this.status === BOOKING_STATUS.CONFIRMED;
   }
 
   isCompleted(): boolean {
-    return this.status === BookingStatus.COMPLETED;
+    return this.status === BOOKING_STATUS.COMPLETED;
   }
 
   isCancelled(): boolean {
-    return this.status === BookingStatus.CANCELLED;
+    return this.status === BOOKING_STATUS.CANCELLED;
   }
 
   isPaid(): boolean {
-    return this.paymentStatus === PaymentStatus.PAID;
+    return this.paymentStatus === PAYMENT_STATUS.PAID;
   }
 
   isRefunded(): boolean {
-    return this.paymentStatus === PaymentStatus.REFUNDED;
+    return this.paymentStatus === PAYMENT_STATUS.REFUNDED;
   }
 
   hasStarted(): boolean {
@@ -233,15 +233,15 @@ export class Booking {
 
   canBeCancelled(): boolean {
     return (
-      this.status !== BookingStatus.COMPLETED &&
-      this.status !== BookingStatus.CANCELLED
+      this.status !== BOOKING_STATUS.COMPLETED &&
+      this.status !== BOOKING_STATUS.CANCELLED
     );
   }
 
   canBeExtended(): boolean {
     return (
-      (this.status === BookingStatus.ACTIVE ||
-        this.status === BookingStatus.CONFIRMED) &&
+      (this.status === BOOKING_STATUS.ACTIVE ||
+        this.status === BOOKING_STATUS.CONFIRMED) &&
       !this.hasExpired()
     );
   }
@@ -410,20 +410,7 @@ export class Vehicle {
   }
 }
 
-// Enums
-export enum BookingStatus {
-  PENDING = 'pending',
-  CONFIRMED = 'confirmed',
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
-}
-
-export enum PaymentStatus {
-  PENDING = 'pending',
-  PAID = 'paid',
-  REFUNDED = 'refunded',
-}
+// Enums - now imported from common types for consistency
 
 // Data Transfer Objects
 export interface CreateBookingData {

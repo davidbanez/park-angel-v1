@@ -17,7 +17,7 @@ This is a monorepo containing the following packages:
 ## Technology Stack
 
 - **Frontend Web**: React 18+ with TypeScript, Vite, TailwindCSS
-- **Frontend Mobile**: React Native with Expo SDK 49+ (iOS and Android)
+- **Frontend Mobile**: React Native with Expo SDK 50+ (iOS and Android)
 - **Backend**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
 - **State Management**: Zustand with React Query for server state
 - **Navigation**: React Router (web), React Navigation (mobile)
@@ -29,8 +29,8 @@ This is a monorepo containing the following packages:
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
-- npm >= 9.0.0
+- Node.js >= 20.0.0
+- npm >= 10.0.0
 - Git
 
 ### Installation

@@ -1,4 +1,10 @@
-// Export existing services
+// Core services - direct exports
+
+// Base service infrastructure
+export * from './base-service';
+export * from './type-validation';
+
+// Legacy exports for backward compatibility
 export * from './auth';
 export * from './authorization';
 export * from './session';
@@ -7,7 +13,7 @@ export * from './realtime';
 export * from './account-verification';
 
 // Export new parking management services
-export * from './parking-management';
+export type { LocationManagementServiceImpl, SpotAvailabilityService, DynamicPricingService, BookingWorkflowService, RealtimeOccupancyService, ParkingTypeService } from './parking-management';
 export * from './spot-availability';
 export * from './dynamic-pricing';
 export * from './hierarchical-pricing';
@@ -39,12 +45,21 @@ export * from './advertisement-management';
 
 // Export API management services
 export * from './api-management';
+// Remove duplicate export
+export { apiManagementService } from './api-management';
 
 // Export customer management services
 export * from './customer-management';
 
 // Export operator reporting services
 export * from './operator-reporting';
+
+// Export hosted parking services
+export * from './hosted-parking';
+
+// Export social features services
+export * from './messaging';
+export * from './rating';
 
 // Service factory for creating service instances
 import { createClient } from '@supabase/supabase-js';

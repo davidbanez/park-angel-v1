@@ -7,6 +7,12 @@ import {
   DiscrepancyType,
 } from '../types/financial-reporting';
 import { FinancialReportingService } from './financial-reporting';
+import { Database } from '../types/database';
+
+// Type aliases for better readability
+type PaymentTransaction = Database['public']['Tables']['payment_transactions']['Row'];
+type RevenueShare = Database['public']['Tables']['revenue_shares']['Row'];
+type SupabaseClient = ReturnType<typeof createClient<Database>>;
 
 export interface TransactionReconciliationService {
   createReconciliationRule(rule: Omit<ReconciliationRule, 'id' | 'createdAt' | 'updatedAt'>): Promise<ReconciliationRule>;
@@ -22,7 +28,7 @@ export interface TransactionReconciliationService {
 
 export class TransactionReconciliationServiceImpl implements TransactionReconciliationService {
   constructor(
-    private supabase: ReturnType<typeof createClient>,
+    private supabase: SupabaseClient,
     private financialReportingService: FinancialReportingService
   ) {}
 
@@ -44,8 +50,8 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
           name: rule.name,
           description: rule.description,
           rule_type: rule.ruleType,
-          conditions: rule.conditions,
-          actions: rule.actions,
+          conditions: rule.conditions as any,
+          actions: rule.actions as any,
           is_active: rule.isActive,
         })
         .select()
@@ -87,10 +93,10 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
           name: updates.name,
           description: updates.description,
           rule_type: updates.ruleType,
-          conditions: updates.conditions,
-          actions: updates.actions,
+          conditions: updates.conditions as any,
+          actions: updates.actions as any,
           is_active: updates.isActive,
-          updated_at: new Date(),
+          updated_at: new Date().toISOString(),
         })
         .eq('id', ruleId)
         .select()
@@ -304,7 +310,7 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
           status: 'resolved',
           resolution,
           resolved_by: resolvedBy,
-          resolved_at: new Date(),
+          resolved_at: new Date().toISOString(),
         })
         .eq('id', discrepancyId);
 
@@ -355,12 +361,22 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
     const discrepancies: Discrepancy[] = [];
     const correctedItems: string[] = [];
 
-    // Get transactions and their revenue shares
+    // Get transactions and their revenue shares with proper typing
     const { data: transactions, error } = await this.supabase
       .from('payment_transactions')
       .select(`
-        *,
-        revenue_shares (*)
+        id,
+        amount,
+        status,
+        booking_id,
+        created_at,
+        revenue_shares (
+          id,
+          total_amount,
+          operator_share,
+          host_share,
+          park_angel_share
+        )
       `)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString());
@@ -370,31 +386,39 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
     }
 
     for (const transaction of transactions || []) {
-      const revenueShare = transaction.revenue_shares?.[0];
-      
-      if (revenueShare) {
-        const transactionAmount = Math.abs(transaction.amount);
-        const revenueShareAmount = revenueShare.total_amount;
-        const difference = Math.abs(transactionAmount - revenueShareAmount);
+      if (!this.isValidTransactionRecord(transaction)) {
+        console.warn('Invalid transaction record:', transaction);
+        continue;
+      }
 
-        // Check if amounts match within tolerance (e.g., 0.01)
-        if (difference > 0.01) {
-          discrepancies.push({
-            type: DiscrepancyType.AMOUNT_MISMATCH,
-            transactionId: transaction.id,
-            description: `Transaction amount (${transactionAmount}) does not match revenue share amount (${revenueShareAmount})`,
-            amount: transactionAmount,
-            expectedAmount: revenueShareAmount,
-            actualAmount: transactionAmount,
-            difference,
-          });
+      const transactionAmount = this.validateFinancialAmount(transaction.amount);
+      const revenueShares = Array.isArray(transaction.revenue_shares) ? transaction.revenue_shares : [];
+      
+      if (revenueShares.length > 0) {
+        const revenueShare = revenueShares[0];
+        if (this.isValidRevenueShareRecord(revenueShare)) {
+          const revenueShareAmount = this.validateFinancialAmount(revenueShare.total_amount);
+          const difference = Math.abs(transactionAmount - revenueShareAmount);
+
+          // Check if amounts match within tolerance (e.g., 0.01)
+          if (difference > 0.01) {
+            discrepancies.push({
+              type: DiscrepancyType.AMOUNT_MISMATCH,
+              transactionId: transaction.id,
+              description: `Transaction amount (${transactionAmount.toFixed(2)}) does not match revenue share amount (${revenueShareAmount.toFixed(2)})`,
+              amount: transactionAmount,
+              expectedAmount: revenueShareAmount,
+              actualAmount: transactionAmount,
+              difference,
+            });
+          }
         }
       } else {
         discrepancies.push({
           type: DiscrepancyType.MISSING_REVENUE_SHARE,
           transactionId: transaction.id,
           description: `Transaction ${transaction.id} has no corresponding revenue share`,
-          amount: Math.abs(transaction.amount),
+          amount: transactionAmount,
         });
       }
     }
@@ -420,8 +444,14 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
     const { data: transactions, error } = await this.supabase
       .from('payment_transactions')
       .select(`
-        *,
-        bookings (status)
+        id,
+        status,
+        amount,
+        booking_id,
+        bookings (
+          id,
+          status
+        )
       `)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString());
@@ -431,13 +461,23 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
     }
 
     for (const transaction of transactions || []) {
+      if (!this.isValidTransactionRecord(transaction)) {
+        continue;
+      }
+
       // Check if payment succeeded but booking is not confirmed
-      if (transaction.status === 'succeeded' && transaction.bookings?.status !== 'confirmed') {
-        discrepancies.push({
-          type: DiscrepancyType.STATUS_MISMATCH,
-          transactionId: transaction.id,
-          description: `Payment succeeded but booking status is ${transaction.bookings?.status}`,
-        });
+      if (transaction.status === 'succeeded') {
+        const booking = Array.isArray(transaction.bookings) ? transaction.bookings[0] : transaction.bookings;
+        if (booking && typeof booking === 'object' && 'status' in booking) {
+          if (booking.status !== 'confirmed' && booking.status !== 'active' && booking.status !== 'completed') {
+            discrepancies.push({
+              type: DiscrepancyType.STATUS_MISMATCH,
+              transactionId: transaction.id,
+              description: `Payment succeeded but booking status is ${booking.status}`,
+              amount: this.validateFinancialAmount(transaction.amount),
+            });
+          }
+        }
       }
     }
 
@@ -461,7 +501,7 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
     // Find duplicate transactions (same booking_id, amount, and created within 5 minutes)
     const { data: transactions, error } = await this.supabase
       .from('payment_transactions')
-      .select('*')
+      .select('id, booking_id, amount, created_at, status')
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
       .order('booking_id, amount, created_at');
@@ -470,18 +510,24 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
       throw new Error(`Failed to fetch transactions: ${error.message}`);
     }
 
-    const duplicateGroups = new Map<string, any[]>();
+    const duplicateGroups = new Map<string, PaymentTransaction[]>();
 
     for (const transaction of transactions || []) {
-      const key = `${transaction.booking_id}_${transaction.amount}`;
+      if (!this.isValidTransactionRecord(transaction)) {
+        continue;
+      }
+
+      const amount = this.validateFinancialAmount(transaction.amount);
+      const key = `${transaction.booking_id}_${amount.toFixed(2)}`;
+      
       if (!duplicateGroups.has(key)) {
         duplicateGroups.set(key, []);
       }
-      duplicateGroups.get(key)!.push(transaction);
+      duplicateGroups.get(key)!.push(transaction as PaymentTransaction);
     }
 
     // Check for potential duplicates
-    for (const [, group] of duplicateGroups) {
+    duplicateGroups.forEach((group) => {
       if (group.length > 1) {
         // Check if transactions are within 5 minutes of each other
         for (let i = 1; i < group.length; i++) {
@@ -491,12 +537,12 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
               type: DiscrepancyType.DUPLICATE_ENTRY,
               transactionId: group[i].id,
               description: `Potential duplicate transaction for booking ${group[i].booking_id}`,
-              amount: Math.abs(group[i].amount),
+              amount: this.validateFinancialAmount(group[i].amount),
             });
           }
         }
       }
-    }
+    });
 
     return {
       ruleId: rule.id,
@@ -533,12 +579,18 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
     }
 
     for (const transaction of transactions || []) {
-      if (!transaction.revenue_shares || transaction.revenue_shares.length === 0) {
+      if (!this.isValidTransactionRecord(transaction)) {
+        continue;
+      }
+
+      const revenueShares = Array.isArray(transaction.revenue_shares) ? transaction.revenue_shares : [];
+      
+      if (revenueShares.length === 0) {
         discrepancies.push({
           type: DiscrepancyType.MISSING_REVENUE_SHARE,
           transactionId: transaction.id,
           description: `Successful transaction ${transaction.id} is missing revenue share calculation`,
-          amount: Math.abs(transaction.amount),
+          amount: this.validateFinancialAmount(transaction.amount),
         });
       }
     }
@@ -567,11 +619,11 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
           rule_id: result.ruleId,
           rule_name: result.ruleName,
           passed: result.passed,
-          start_date: startDate,
-          end_date: endDate,
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString(),
           discrepancy_count: result.discrepancies.length,
           corrected_count: result.correctedItems.length,
-          created_at: new Date(),
+          created_at: new Date().toISOString(),
         });
 
       if (resultError) {
@@ -592,7 +644,7 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
             actual_amount: discrepancy.actualAmount,
             difference: discrepancy.difference,
             status: 'open',
-            created_at: new Date(),
+            created_at: new Date().toISOString(),
           });
 
         if (discrepancyError) {
@@ -641,4 +693,63 @@ export class TransactionReconciliationServiceImpl implements TransactionReconcil
       difference: data.difference,
     };
   }
+
+  // Type validation helper methods
+  private isValidTransactionRecord(transaction: any): transaction is PaymentTransaction {
+    return (
+      transaction &&
+      typeof transaction === 'object' &&
+      typeof transaction.id === 'string' &&
+      typeof transaction.amount === 'number' &&
+      typeof transaction.status === 'string' &&
+      !isNaN(transaction.amount)
+    );
+  }
+
+  private isValidRevenueShareRecord(revenueShare: any): revenueShare is RevenueShare {
+    return (
+      revenueShare &&
+      typeof revenueShare === 'object' &&
+      typeof revenueShare.id === 'string' &&
+      typeof revenueShare.total_amount === 'number' &&
+      !isNaN(revenueShare.total_amount)
+    );
+  }
+
+  private validateFinancialAmount(amount: number): number {
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      console.warn('Invalid financial amount:', amount);
+      return 0;
+    }
+    return Math.abs(amount);
+  }
+
+  private safeGetString(obj: any, key: string): string {
+    if (obj && typeof obj === 'object' && key in obj) {
+      const value = obj[key];
+      return typeof value === 'string' ? value : String(value || '');
+    }
+    return '';
+  }
+
+  private safeGetNumber(obj: any, key: string): number | null {
+    if (obj && typeof obj === 'object' && key in obj) {
+      const value = obj[key];
+      if (typeof value === 'number' && !isNaN(value)) return value;
+      if (typeof value === 'string') {
+        const parsed = parseFloat(value);
+        return !isNaN(parsed) ? parsed : null;
+      }
+    }
+    return null;
+  }
 }
+
+// Type definitions for internal use - using proper database types
+type TransactionWithRevenueShares = PaymentTransaction & {
+  revenue_shares?: RevenueShare[];
+};
+
+type TransactionWithBookings = PaymentTransaction & {
+  bookings?: { id: string; status: string } | { id: string; status: string }[];
+};

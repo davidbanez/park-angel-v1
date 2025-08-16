@@ -1,30 +1,28 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { createClient } from '@supabase/supabase-js';
 import { DiscountVATManagementService } from '../discount-vat-management';
-import { DiscountRule, VATCalculator } from '../../models/discount';
+import { DiscountRule } from '../../models/discount';
 import { Money, Percentage } from '../../models/value-objects';
+import type { DiscountType } from '../../types/common';
 
 // Mock Supabase client
 const createMockSupabase = () => {
-  const mockChain = {
-    select: vi.fn(() => mockChain),
-    insert: vi.fn(() => mockChain),
-    update: vi.fn(() => mockChain),
-    delete: vi.fn(() => mockChain),
-    eq: vi.fn(() => mockChain),
-    or: vi.fn(() => mockChain),
-    is: vi.fn(() => mockChain),
-    gte: vi.fn(() => mockChain),
-    lte: vi.fn(() => mockChain),
-    order: vi.fn(() => mockChain),
-    limit: vi.fn(() => mockChain),
-    neq: vi.fn(() => mockChain),
-    single: vi.fn(),
-    mockResolvedValue: vi.fn()
-  };
-
   return {
-    from: vi.fn(() => mockChain)
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      or: vi.fn().mockReturnThis(),
+      is: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      neq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      then: vi.fn().mockResolvedValue({ data: null, error: null })
+    }))
   };
 };
 
@@ -47,7 +45,7 @@ describe('DiscountVATManagementService', () => {
       const mockRule = {
         id: 'rule-1',
         name: 'Senior Citizen Discount',
-        type: 'senior',
+        type: 'senior' as DiscountType,
         percentage: 20,
         is_vat_exempt: true,
         conditions: '[]',
@@ -66,7 +64,7 @@ describe('DiscountVATManagementService', () => {
 
       const result = await service.createDiscountRule({
         name: 'Senior Citizen Discount',
-        type: 'senior',
+        type: 'senior' as DiscountType,
         percentage: 20,
         isVATExempt: true,
         conditions: [],
@@ -88,7 +86,7 @@ describe('DiscountVATManagementService', () => {
 
       await expect(service.createDiscountRule({
         name: 'Test Discount',
-        type: 'custom',
+        type: 'custom' as DiscountType,
         percentage: 10,
         isVATExempt: false,
         createdBy: 'user-1'
@@ -99,7 +97,7 @@ describe('DiscountVATManagementService', () => {
       const existingRule = {
         id: 'rule-1',
         name: 'Old Name',
-        type: 'custom',
+        type: 'custom' as DiscountType,
         percentage: 10,
         is_vat_exempt: false,
         conditions: '[]',
@@ -136,9 +134,8 @@ describe('DiscountVATManagementService', () => {
     });
 
     it('should delete a discount rule successfully', async () => {
-      mockSupabase.from().delete().eq.mockResolvedValue({
-        error: null
-      });
+      const mockQuery = mockSupabase.from();
+      mockQuery.delete().eq().then.mockResolvedValue({ error: null });
 
       await expect(service.deleteDiscountRule('rule-1')).resolves.not.toThrow();
     });
@@ -148,7 +145,7 @@ describe('DiscountVATManagementService', () => {
         {
           id: 'rule-1',
           name: 'Senior Discount',
-          type: 'senior',
+          type: 'senior' as DiscountType,
           percentage: 20,
           is_vat_exempt: true,
           conditions: '[]',
@@ -364,7 +361,7 @@ describe('DiscountVATManagementService', () => {
         {
           id: 'rule-1',
           name: 'Senior Discount',
-          type: 'senior',
+          type: 'senior' as DiscountType,
           percentage: 20,
           is_vat_exempt: true,
           conditions: '[]',
@@ -480,7 +477,7 @@ describe('DiscountVATManagementService', () => {
           created_at: '2024-01-01T00:00:00Z',
           discount_rules: {
             name: 'Senior Discount',
-            type: 'senior'
+            type: 'senior' as DiscountType
           },
           discount_rule_id: 'rule-1'
         },
@@ -492,7 +489,7 @@ describe('DiscountVATManagementService', () => {
           created_at: '2024-01-02T00:00:00Z',
           discount_rules: {
             name: 'PWD Discount',
-            type: 'pwd'
+            type: 'pwd' as DiscountType
           },
           discount_rule_id: 'rule-2'
         }
@@ -521,7 +518,7 @@ describe('DiscountVATManagementService', () => {
           original_amount: '100.00',
           discount_rules: {
             name: 'Senior Discount',
-            type: 'senior'
+            type: 'senior' as DiscountType
           }
         },
         {
@@ -530,7 +527,7 @@ describe('DiscountVATManagementService', () => {
           original_amount: '150.00',
           discount_rules: {
             name: 'Senior Discount',
-            type: 'senior'
+            type: 'senior' as DiscountType
           }
         }
       ];

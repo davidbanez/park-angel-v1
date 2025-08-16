@@ -1,0 +1,1 @@
+export { SocialProofIndicators } from './SocialProofIndicators';

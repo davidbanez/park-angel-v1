@@ -160,19 +160,19 @@ export class AuditLogService {
 
       return {
         id: data.id,
-        userId: data.user_id,
-        userEmail: (data.users as any)?.email || 'Unknown',
+        userId: data.user_id || 'unknown',
+        userEmail: (data.users as any)?.email || 'unknown@example.com',
         userName: (data.users as any)?.user_profiles 
           ? `${(data.users as any).user_profiles.first_name || ''} ${(data.users as any).user_profiles.last_name || ''}`.trim()
           : 'Unknown',
         action: data.action,
         resourceType: data.resource_type,
         resourceId: data.resource_id,
-        oldValues: data.old_values,
-        newValues: data.new_values,
+        oldValues: data.old_values as Record<string, any> | null,
+        newValues: data.new_values as Record<string, any> | null,
         timestamp: data.created_at,
-        ipAddress: data.ip_address,
-        userAgent: data.user_agent,
+        ipAddress: data.ip_address || undefined,
+        userAgent: data.user_agent || undefined,
         details: {
           oldValues: data.old_values,
           newValues: data.new_values

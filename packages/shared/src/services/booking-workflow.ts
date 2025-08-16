@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { Booking, BookingStatus, PaymentStatus, Vehicle } from '../models/booking';
+import { Booking, Vehicle } from '../models/booking';
+import { BookingStatus, PaymentStatus, BOOKING_STATUS } from '../types/common';
 import { UserId, Money, TimeRange } from '../models/value-objects';
 import { VehicleType } from '../types';
 import { 
@@ -105,7 +106,7 @@ export class BookingWorkflowServiceImpl implements BookingWorkflowService {
     const booking = await this.getBooking(bookingId);
     if (!booking) throw new Error('Booking not found');
 
-    if (booking.status !== BookingStatus.PENDING) {
+    if (booking.status !== BOOKING_STATUS.PENDING) {
       throw new Error('Only pending bookings can be confirmed');
     }
 
@@ -137,7 +138,7 @@ export class BookingWorkflowServiceImpl implements BookingWorkflowService {
     const booking = await this.getBooking(bookingId);
     if (!booking) throw new Error('Booking not found');
 
-    if (booking.status !== BookingStatus.CONFIRMED) {
+    if (booking.status !== BOOKING_STATUS.CONFIRMED) {
       throw new Error('Only confirmed bookings can be started');
     }
 
@@ -170,7 +171,7 @@ export class BookingWorkflowServiceImpl implements BookingWorkflowService {
     const booking = await this.getBooking(bookingId);
     if (!booking) throw new Error('Booking not found');
 
-    if (booking.status !== BookingStatus.ACTIVE) {
+    if (booking.status !== BOOKING_STATUS.ACTIVE) {
       throw new Error('Only active bookings can be completed');
     }
 
@@ -574,11 +575,11 @@ export class BookingWorkflowServiceImpl implements BookingWorkflowService {
 
   private mapToBookingModel(data: any): Booking {
     return new Booking(
-      data.id,
+      data.id as string,
       new UserId(data.user_id),
-      data.spot_id,
+      data.spot_id as string,
       data.vehicle_id,
-      new TimeRange(new Date(data.start_time), new Date(data.end_time)),
+      new TimeRange(new Date(data.start_time as string), new Date(data.end_time as string)),
       data.status as BookingStatus,
       data.payment_status as PaymentStatus,
       new Money(data.amount),
@@ -664,8 +665,8 @@ export class BookingAutomation {
 
   private async sendBookingReminder(booking: any): Promise<void> {
     const reminderData = {
-      user_id: booking.user_id,
-      booking_id: booking.id,
+      user_id: booking.user_id as string,
+      booking_id: booking.id as string,
       type: 'reminder',
       message: `Reminder: Your parking session starts in 1 hour at ${new Date(booking.start_time).toLocaleTimeString()}`,
       created_at: new Date().toISOString()

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { validateQueryResult, safeAccess, isValidDatabaseResult } from '../lib/supabase';
 import {
   FinancialReport,
   FinancialReportType,
@@ -190,7 +191,7 @@ export class FinancialReportingServiceImpl implements FinancialReportingService 
       const locationBreakdown = this.groupTransactionsByLocation(transactions || []);
 
       // Calculate monthly trends
-      const monthlyTrends = this.calculateMonthlyTrends(transactions || [], startDate, endDate);
+      const monthlyTrends = this.calculateMonthlyTrends(transactions || []);
 
       return {
         operatorId,
@@ -288,7 +289,7 @@ export class FinancialReportingServiceImpl implements FinancialReportingService 
       const listingBreakdown = this.groupTransactionsByListing(transactions || []);
 
       // Calculate occupancy rates
-      const occupancyRates = await this.calculateHostOccupancyRates(hostId, startDate, endDate);
+      const occupancyRates = await this.calculateHostOccupancyRates();
 
       return {
         hostId,
@@ -372,23 +373,38 @@ export class FinancialReportingServiceImpl implements FinancialReportingService 
       // Perform reconciliation
       const reconciliation = this.performReconciliation(
         transactions || [],
-        revenueShares || [],
-        payouts || []
+        revenueShares || []
       );
 
       return {
         period: { startDate, endDate },
         summary: {
           totalTransactions: transactions?.length || 0,
-          totalAmount: (transactions || []).reduce((sum, t) => sum + Math.abs(t.amount), 0),
+          totalAmount: (transactions || []).reduce((sum, t) => sum + Math.abs(t.amount as number), 0),
           totalRevenueShares: revenueShares?.length || 0,
           totalPayouts: payouts?.length || 0,
           reconciledTransactions: reconciliation.reconciledCount,
           unreconciledTransactions: reconciliation.unreconciledCount,
         },
         transactions: (transactions || []).map(this.mapTransactionForReconciliation),
-        revenueShares: revenueShares || [],
-        payouts: payouts || [],
+        revenueShares: (revenueShares || []).map(rs => ({
+          id: rs.id as string,
+          transactionId: rs.transaction_id as string,
+          totalAmount: rs.total_amount as number,
+          parkAngelShare: rs.park_angel_share as number,
+          operatorShare: rs.operator_share as number,
+          hostShare: rs.host_share as number,
+          calculatedAt: new Date(rs.calculated_at as string),
+        })),
+        payouts: (payouts || []).map(p => ({
+          id: p.id as string,
+          recipientId: p.recipient_id as string,
+          recipientType: p.recipient_type as string,
+          amount: p.amount as number,
+          status: p.status as string,
+          createdAt: new Date(p.created_at as string),
+          processedAt: p.processed_at ? new Date(p.processed_at as string) : undefined,
+        })),
         discrepancies: reconciliation.discrepancies,
         generatedAt: new Date(),
       };
@@ -540,13 +556,26 @@ export class FinancialReportingServiceImpl implements FinancialReportingService 
       throw new Error(`Failed to fetch payouts: ${error.message}`);
     }
 
-    const totalAmount = (payouts || []).reduce((sum, payout) => sum + payout.amount, 0);
-    const paidAmount = (payouts || [])
-      .filter(payout => payout.status === 'paid')
-      .reduce((sum, payout) => sum + payout.amount, 0);
-    const pendingAmount = (payouts || [])
-      .filter(payout => payout.status === 'pending')
-      .reduce((sum, payout) => sum + payout.amount, 0);
+    const validPayouts = (payouts || []).filter(isValidDatabaseResult);
+    
+    const totalAmount = validPayouts.reduce((sum, payout) => {
+      const amount = safeAccess(payout, 'amount', 0);
+      return sum + (typeof amount === 'number' ? amount : 0);
+    }, 0);
+    
+    const paidAmount = validPayouts
+      .filter(payout => safeAccess(payout, 'status', 'pending') === 'paid')
+      .reduce((sum, payout) => {
+        const amount = safeAccess(payout, 'amount', 0);
+        return sum + (typeof amount === 'number' ? amount : 0);
+      }, 0);
+      
+    const pendingAmount = validPayouts
+      .filter(payout => safeAccess(payout, 'status', 'pending') === 'pending')
+      .reduce((sum, payout) => {
+        const amount = safeAccess(payout, 'amount', 0);
+        return sum + (typeof amount === 'number' ? amount : 0);
+      }, 0);
 
     return {
       summary: {
@@ -701,7 +730,7 @@ export class FinancialReportingServiceImpl implements FinancialReportingService 
       }
       
       const monthData = monthlyMap.get(monthKey);
-      monthData.revenue += transaction.operator_share || transaction.host_share || 0;
+      monthData.revenue += (transaction.operator_share as number) || (transaction.host_share as number) || 0;
       monthData.transactionCount += 1;
     });
 
@@ -763,7 +792,7 @@ export class FinancialReportingServiceImpl implements FinancialReportingService 
         if (!typeMap.has(locationType)) {
           typeMap.set(locationType, 0);
         }
-        typeMap.set(locationType, typeMap.get(locationType) + item.park_angel_share);
+        typeMap.set(locationType, typeMap.get(locationType) + (item.park_angel_share as number));
       }
     });
 

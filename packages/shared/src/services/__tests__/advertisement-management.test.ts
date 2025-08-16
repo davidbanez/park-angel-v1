@@ -5,7 +5,8 @@ import type {
   Advertisement,
   CreateAdvertisementRequest,
   UpdateAdvertisementRequest,
-  AdApprovalRequest
+  AdApprovalRequest,
+  AdTargetType
 } from '../../types/advertisement';
 
 // Mock the supabase import
@@ -286,7 +287,7 @@ describe('AdvertisementManagementService', () => {
         id: 'ad-1',
         title: 'Test Ad',
         targetLocationId: 'location-1',
-        targetType: 'section' as const,
+        targetType: 'section' as AdTargetType,
         startDate: new Date('2024-01-01'),
         endDate: new Date('2024-01-31')
       };

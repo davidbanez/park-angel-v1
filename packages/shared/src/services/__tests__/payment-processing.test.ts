@@ -272,7 +272,10 @@ describe('RevenueShareService', () => {
 
   describe('getOperatorEarnings', () => {
     it('should retrieve operator earnings successfully', async () => {
-      const result = await revenueService.getOperatorEarnings('operator_123');
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 30);
+      const result = await revenueService.getOperatorEarnings('operator_123', startDate, endDate);
 
       expect(result).toBeDefined();
       expect(result.operatorId).toBe('operator_123');

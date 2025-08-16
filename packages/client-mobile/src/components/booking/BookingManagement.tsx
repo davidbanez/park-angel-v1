@@ -17,12 +17,14 @@ interface BookingManagementProps {
   booking: Booking;
   onBookingUpdated: (booking: Booking) => void;
   onBookingCancelled: () => void;
+  onNavigateToSpot?: (spotId: string) => void;
 }
 
 export const BookingManagement: React.FC<BookingManagementProps> = ({
   booking,
   onBookingUpdated,
   onBookingCancelled,
+  onNavigateToSpot,
 }) => {
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [showExtensionOptions, setShowExtensionOptions] = useState(false);
@@ -372,6 +374,17 @@ export const BookingManagement: React.FC<BookingManagementProps> = ({
 
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
+        {/* Navigation Button */}
+        {(booking.status === 'confirmed' || booking.status === 'active') && onNavigateToSpot && (
+          <TouchableOpacity
+            style={[styles.button, styles.navigationButton]}
+            onPress={() => onNavigateToSpot(booking.spotId)}
+          >
+            <Text style={styles.navigationButtonIcon}>🧭</Text>
+            <Text style={styles.navigationButtonText}>Navigate to Spot</Text>
+          </TouchableOpacity>
+        )}
+
         {booking.status === 'active' && (
           <TouchableOpacity
             style={[styles.button, styles.completeButton]}
@@ -616,6 +629,21 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  navigationButton: {
+    backgroundColor: '#8B5CF6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navigationButtonIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  navigationButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
   },
   completeButton: {
     backgroundColor: '#10B981',

@@ -19,7 +19,7 @@ import {
 } from '../../../shared/src/types/operator-reporting';
 
 export const ReportsPage: React.FC = () => {
-  const { currentOperator } = useOperatorStore();
+  const { operatorData: currentOperator } = useOperatorStore();
   const {
     reports,
     loading,

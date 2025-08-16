@@ -7,7 +7,6 @@ import { Modal } from '../shared/Modal';
 import {
   ReportQueryOptions,
   OperatorReportFilters,
-  OperatorReportType,
 } from '../../../../shared/src/types/operator-reporting';
 
 interface ReportFiltersProps {
@@ -26,16 +25,7 @@ export const ReportFilters: React.FC<ReportFiltersProps> = ({
   const [sortBy, setSortBy] = useState(filters.sort?.field || 'generated_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(filters.sort?.order || 'desc');
 
-  const reportTypes = [
-    { value: OperatorReportType.REVENUE_REPORT, label: 'Revenue Report' },
-    { value: OperatorReportType.OCCUPANCY_REPORT, label: 'Occupancy Report' },
-    { value: OperatorReportType.USER_BEHAVIOR_REPORT, label: 'User Behavior Report' },
-    { value: OperatorReportType.VIOLATION_REPORT, label: 'Violation Report' },
-    { value: OperatorReportType.VIP_USAGE_REPORT, label: 'VIP Usage Report' },
-    { value: OperatorReportType.ZONE_PERFORMANCE_REPORT, label: 'Zone Performance Report' },
-    { value: OperatorReportType.VEHICLE_TYPE_ANALYTICS, label: 'Vehicle Type Analytics' },
-    { value: OperatorReportType.OPERATIONAL_SUMMARY, label: 'Operational Summary' },
-  ];
+
 
   const vehicleTypes = [
     'Car',

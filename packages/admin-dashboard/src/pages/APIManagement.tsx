@@ -260,15 +260,6 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
                   backgroundColor: 'rgba(147, 51, 234, 0.1)',
                 }]
               }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true
-                  }
-                }
-              }}
             />
           </div>
         </Card>
@@ -281,6 +272,7 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
               data={{
                 labels: ['Free', 'Starter', 'Professional', 'Enterprise'],
                 datasets: [{
+                  label: 'Revenue by Plan',
                   data: [0, 2500, 8500, 15000],
                   backgroundColor: [
                     'rgb(156, 163, 175)',
@@ -289,10 +281,6 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
                     'rgb(16, 185, 129)'
                   ]
                 }]
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false
               }}
             />
           </div>
@@ -345,7 +333,7 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
           columns={[
             {
               key: 'select',
-              header: '',
+              label: '',
               render: (developer: DeveloperAccount) => (
                 <input
                   type="checkbox"
@@ -360,11 +348,11 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
                 />
               )
             },
-            { key: 'company_name', header: 'Company Name' },
-            { key: 'contact_email', header: 'Contact Email' },
+            { key: 'company_name', label: 'Company Name' },
+            { key: 'contact_email', label: 'Contact Email' },
             { 
               key: 'status', 
-              header: 'Status',
+              label: 'Status',
               render: (developer: DeveloperAccount) => (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   developer.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -378,12 +366,12 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
             },
             {
               key: 'created_at',
-              header: 'Created',
+              label: 'Created',
               render: (developer: DeveloperAccount) => new Date(developer.created_at).toLocaleDateString()
             },
             {
               key: 'actions',
-              header: 'Actions',
+              label: 'Actions',
               render: (developer: DeveloperAccount) => (
                 <div className="flex space-x-2">
                   <Button
@@ -448,16 +436,16 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
             app.developer_account?.company_name?.toLowerCase().includes(applicationFilter.toLowerCase())
           )}
           columns={[
-            { key: 'name', header: 'Application Name' },
+            { key: 'name', label: 'Application Name' },
             { 
               key: 'developer_account.company_name', 
-              header: 'Company',
+              label: 'Company',
               render: (app: APIApplication) => app.developer_account?.company_name || 'N/A'
             },
-            { key: 'app_type', header: 'Type' },
+            { key: 'app_type', label: 'Type' },
             { 
               key: 'status', 
-              header: 'Status',
+              label: 'Status',
               render: (app: APIApplication) => (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                   app.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -471,12 +459,12 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
             },
             {
               key: 'created_at',
-              header: 'Created',
+              label: 'Created',
               render: (app: APIApplication) => new Date(app.created_at).toLocaleDateString()
             },
             {
               key: 'actions',
-              header: 'Actions',
+              label: 'Actions',
               render: (app: APIApplication) => (
                 <div className="flex space-x-2">
                   <Button
@@ -559,15 +547,6 @@ export const APIManagement: React.FC<APIManagementProps> = () => {
                   borderColor: 'rgb(147, 51, 234)',
                   backgroundColor: 'rgba(147, 51, 234, 0.1)',
                 }]
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true
-                  }
-                }
               }}
             />
           </div>

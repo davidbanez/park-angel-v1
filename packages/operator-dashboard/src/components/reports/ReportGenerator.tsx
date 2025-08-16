@@ -94,7 +94,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {reportTypes.map((type) => (
-            <Card
+            <div
               key={type.value}
               className={`cursor-pointer transition-all ${
                 reportType === type.value
@@ -103,6 +103,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               }`}
               onClick={() => setReportType(type.value)}
             >
+              <Card>
               <div className="p-4">
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">{type.icon}</span>
@@ -111,7 +112,8 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                   </div>
                 </div>
               </div>
-            </Card>
+              </Card>
+            </div>
           ))}
         </div>
         <p className="mt-2 text-sm text-secondary-600">

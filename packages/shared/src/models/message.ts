@@ -1,4 +1,5 @@
 import { UserId } from './value-objects';
+import { MessageType, MessageStatus, ConversationType, MESSAGE_STATUS } from '../types/common';
 
 export class Message {
   constructor(
@@ -26,7 +27,7 @@ export class Message {
       data.content,
       data.type,
       data.isEncrypted || false,
-      MessageStatus.SENT,
+      MESSAGE_STATUS.SENT,
       new Date(),
       undefined,
       undefined,
@@ -37,17 +38,17 @@ export class Message {
 
   markAsRead(): void {
     if (
-      this.status === MessageStatus.SENT ||
-      this.status === MessageStatus.DELIVERED
+      this.status === MESSAGE_STATUS.SENT ||
+      this.status === MESSAGE_STATUS.DELIVERED
     ) {
-      this.status = MessageStatus.READ;
+      this.status = MESSAGE_STATUS.READ;
       this.readAt = new Date();
     }
   }
 
   markAsDelivered(): void {
-    if (this.status === MessageStatus.SENT) {
-      this.status = MessageStatus.DELIVERED;
+    if (this.status === MESSAGE_STATUS.SENT) {
+      this.status = MESSAGE_STATUS.DELIVERED;
     }
   }
 
@@ -61,7 +62,7 @@ export class Message {
   }
 
   delete(): void {
-    this.status = MessageStatus.DELETED;
+    this.status = MESSAGE_STATUS.DELETED;
     this.deletedAt = new Date();
   }
 
@@ -74,18 +75,18 @@ export class Message {
   }
 
   isRead(): boolean {
-    return this.status === MessageStatus.READ;
+    return this.status === MESSAGE_STATUS.READ;
   }
 
   isDelivered(): boolean {
     return (
-      this.status === MessageStatus.DELIVERED ||
-      this.status === MessageStatus.READ
+      this.status === MESSAGE_STATUS.DELIVERED ||
+      this.status === MESSAGE_STATUS.READ
     );
   }
 
   isDeleted(): boolean {
-    return this.status === MessageStatus.DELETED;
+    return this.status === MESSAGE_STATUS.DELETED;
   }
 
   isEdited(): boolean {
@@ -339,30 +340,7 @@ export class MessageEncryption {
   }
 }
 
-// Enums
-export enum MessageType {
-  TEXT = 'text',
-  IMAGE = 'image',
-  FILE = 'file',
-  SYSTEM = 'system',
-  BOOKING_UPDATE = 'booking_update',
-  PAYMENT_NOTIFICATION = 'payment_notification',
-}
-
-export enum MessageStatus {
-  SENT = 'sent',
-  DELIVERED = 'delivered',
-  READ = 'read',
-  DELETED = 'deleted',
-}
-
-export enum ConversationType {
-  USER_HOST = 'user_host',
-  USER_OPERATOR = 'user_operator',
-  USER_SUPPORT = 'user_support',
-  GROUP = 'group',
-  SYSTEM = 'system',
-}
+// Enums - now imported from common types for consistency
 
 // Data Transfer Objects
 export interface CreateMessageData {

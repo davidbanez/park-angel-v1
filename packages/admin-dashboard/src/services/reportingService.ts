@@ -1,8 +1,7 @@
 import { supabase } from '@park-angel/shared/src/config/supabase';
 import { 
   FinancialReportingServiceImpl,
-  DiscountReportingService,
-  ServiceFactory 
+  DiscountReportingService
 } from '@park-angel/shared/src/services';
 import {
   FinancialReport,
@@ -523,8 +522,16 @@ export class ReportingService {
     try {
       const newScheduledReport = {
         id: `scheduled_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        ...scheduledReport,
-        created_at: new Date()
+        name: scheduledReport.name,
+        report_type_id: scheduledReport.reportTypeId,
+        parameters: scheduledReport.parameters,
+        schedule: scheduledReport.schedule,
+        recipients: scheduledReport.recipients,
+        is_active: scheduledReport.isActive,
+        last_run: scheduledReport.lastRun?.toISOString() || null,
+        next_run: scheduledReport.nextRun.toISOString(),
+        created_by: scheduledReport.createdBy,
+        created_at: new Date().toISOString()
       };
 
       const { data, error } = await supabase

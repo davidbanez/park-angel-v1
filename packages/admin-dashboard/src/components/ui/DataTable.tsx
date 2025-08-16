@@ -339,7 +339,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                   ) : (
                     <Button
                       onClick={() => setCurrentPage(page as number)}
-                      variant={currentPage === page ? 'default' : 'outline'}
+                      variant={currentPage === page ? 'primary' : 'outline'}
                       size="sm"
                       className={currentPage === page ? 'bg-purple-600 text-white' : ''}
                     >

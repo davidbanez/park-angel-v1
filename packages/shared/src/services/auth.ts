@@ -1,6 +1,6 @@
 import { supabase, handleSupabaseError } from '../lib/supabase';
 import type { AuthError, User, Session } from '@supabase/supabase-js';
-import { UserType, UserStatus, PermissionAction } from '../models/user';
+import { UserType, UserStatus, PermissionAction, USER_TYPE, USER_STATUS } from '../types/common';
 import { SessionService } from './session';
 import { AuthorizationService } from './authorization';
 import { AccountVerificationService } from './account-verification';
@@ -55,10 +55,10 @@ export interface UserGroup {
 export interface Permission {
   resource: string;
   actions: PermissionAction[];
-  conditions?: PermissionCondition[];
+  conditions?: AuthPermissionCondition[];
 }
 
-export interface PermissionCondition {
+export interface AuthPermissionCondition {
   field: string;
   operator: 'equals' | 'greater_than' | 'less_than' | 'contains';
   value: string | number;
@@ -133,6 +133,7 @@ export class AuthService {
           lastName: data.lastName,
           phone: data.phone || undefined,
           userType: data.userType,
+          email: authData.user.email || data.email,
         });
 
         // Log audit event
@@ -193,7 +194,7 @@ export class AuthService {
 
         // Check if user is active
         const userStatus = await this.getUserStatus(authData.user.id);
-        if (userStatus !== UserStatus.ACTIVE) {
+        if (userStatus !== USER_STATUS.ACTIVE) {
           await supabase.auth.signOut();
           throw new Error('Account is inactive or suspended');
         }
@@ -647,7 +648,7 @@ export class AuthService {
 
       return {
         userId,
-        userType: userData.user_type,
+        userType: userData.user_type as UserType,
         groups,
         permissions: allPermissions,
       };
@@ -655,7 +656,7 @@ export class AuthService {
       console.error('Error getting user permissions:', error);
       return {
         userId,
-        userType: UserType.CLIENT,
+        userType: USER_TYPE.CLIENT,
         groups: [],
         permissions: [],
       };
@@ -675,7 +676,7 @@ export class AuthService {
       const permissions = await this.getUserPermissions(userId);
 
       // Admin users have all permissions
-      if (permissions.userType === UserType.ADMIN) {
+      if (permissions.userType === USER_TYPE.ADMIN) {
         return true;
       }
 
@@ -728,7 +729,7 @@ export class AuthService {
         .insert({
           name,
           description,
-          permissions,
+          permissions: JSON.stringify(permissions),
           operator_id: operatorId,
         })
         .select()
@@ -759,7 +760,7 @@ export class AuthService {
           id: data.id,
           name: data.name,
           description: data.description,
-          permissions: data.permissions,
+          permissions: JSON.parse(data.permissions as string),
           operatorId: data.operator_id,
         },
         error: null,
@@ -1017,7 +1018,7 @@ export class AuthService {
         .eq('key', key)
         .single();
 
-      return data?.value?.attempts || 0;
+      return data?.value ? JSON.parse(data.value as string).attempts || 0 : 0;
     } catch (error) {
       return 0;
     }
@@ -1052,9 +1053,13 @@ export class AuthService {
         .eq('key', key)
         .single();
 
-      if (!data?.value?.lastAttempt) return false;
+      if (!data?.value) return false;
 
-      const lastAttempt = new Date(data.value.lastAttempt);
+      const value = JSON.parse(data.value as string);
+
+      if (!value.lastAttempt) return false;
+
+      const lastAttempt = new Date(value.lastAttempt);
       const lockoutEnd = new Date(
         lastAttempt.getTime() + this.securityPolicy.lockoutDuration * 60 * 1000
       );
@@ -1079,7 +1084,7 @@ export class AuthService {
       if (error) throw error;
       return data.status as UserStatus;
     } catch (error) {
-      return UserStatus.INACTIVE;
+      return USER_STATUS.INACTIVE;
     }
   }
 
@@ -1097,7 +1102,7 @@ export class AuthService {
       if (error) throw error;
       return data.user_type as UserType;
     } catch (error) {
-      return UserType.CLIENT;
+      return USER_TYPE.CLIENT;
     }
   }
 
@@ -1118,8 +1123,8 @@ export class AuthService {
         action,
         resource_type: resourceType,
         resource_id: resourceId,
-        old_values: oldValues,
-        new_values: newValues,
+        old_values: JSON.stringify(oldValues),
+        new_values: JSON.stringify(newValues),
       });
     } catch (error) {
       console.error('Error logging audit event:', error);
@@ -1136,6 +1141,7 @@ export class AuthService {
       lastName: string;
       phone?: string;
       userType: UserType;
+      email?: string;
     }
   ) {
     const { error } = await supabase.from('user_profiles').insert({
@@ -1152,8 +1158,9 @@ export class AuthService {
     // Also update the users table with user type
     const { error: userError } = await supabase.from('users').insert({
       id: userId,
-      user_type: profileData.userType,
-      status: UserStatus.ACTIVE,
+      email: profileData.email || 'unknown@example.com',
+      user_type: profileData.userType as 'client' | 'host' | 'operator' | 'admin' | 'pos',
+      status: USER_STATUS.ACTIVE,
     });
 
     if (userError) {

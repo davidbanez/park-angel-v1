@@ -143,7 +143,7 @@ export const AdvertisementManagement: React.FC<AdvertisementManagementProps> = (
       case 'pending': return 'text-yellow-600 bg-yellow-100';
       case 'paused': return 'text-gray-600 bg-gray-100';
       case 'completed': return 'text-purple-600 bg-purple-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
+
       default: return 'text-gray-600 bg-gray-100';
     }
   };
